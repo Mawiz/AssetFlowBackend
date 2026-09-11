@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
-using RequestFlow.Common.Settings;
+using AssetFlow.Common.Settings;
 using SharpRaven;
 using SharpRaven.Data;
 
-namespace RequestFlow.Common.Reporter
+namespace AssetFlow.Common.Reporter
 {
     public class SentryErrorReporter : IErrorReporter
     {

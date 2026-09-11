@@ -2,13 +2,13 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using RequestFlow.Common.Exceptions;
-using RequestFlow.Common.Settings;
-using RequestFlow.Services.Dto;
+using AssetFlow.Common.Exceptions;
+using AssetFlow.Common.Settings;
+using AssetFlow.Services.Dto;
 using System.Net;
 using System.Text;
 
-namespace RequestFlow.API.Middleware
+namespace AssetFlow.API.Middleware
 {
     public class ExceptionHandlingMiddleware
     {

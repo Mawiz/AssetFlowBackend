@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RequestFlow.Data.Entities.Tenant
+namespace AssetFlow.Data.Entities.Tenant
 {
     public class SubscriptionType : BaseEnumModel
     {

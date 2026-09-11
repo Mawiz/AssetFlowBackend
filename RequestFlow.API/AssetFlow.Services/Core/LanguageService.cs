@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RequestFlow.Data.Data;
-using RequestFlow.Data.Entities.Tenant;
-using RequestFlow.Services.Contracts;
-using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.Tenant;
+using AssetFlow.Data.Data;
+using AssetFlow.Data.Entities.Tenant;
+using AssetFlow.Services.Contracts;
+using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.Tenant;
 using System.Net;
 
-namespace RequestFlow.Services.Core
+namespace AssetFlow.Services.Core
 {
     public class LanguageService : ILanguageService
     {

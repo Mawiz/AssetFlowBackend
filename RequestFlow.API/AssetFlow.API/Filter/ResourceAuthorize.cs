@@ -2,12 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using RequestFlow.Data.Data;
-using RequestFlow.Services.Dto;
+using AssetFlow.Data.Data;
+using AssetFlow.Services.Dto;
 using System.Diagnostics.Contracts;
 using System.Net;
 
-namespace RequestFlow.API.Filter
+namespace AssetFlow.API.Filter
 {
     public class ResourceAuthorize : Attribute, IAuthorizationFilter
     {

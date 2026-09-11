@@ -1,6 +1,6 @@
-﻿using RequestFlow.Data.Identity;
+﻿using AssetFlow.Data.Identity;
 
-namespace RequestFlow.Data.Entities
+namespace AssetFlow.Data.Entities
 {
     public class BaseModel : BaseIdModel
     {

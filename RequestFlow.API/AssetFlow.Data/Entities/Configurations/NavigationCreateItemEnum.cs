@@ -1,7 +1,7 @@
 ﻿
-using RequestFlow.Data.Identity;
+using AssetFlow.Data.Identity;
 
-namespace RequestFlow.Data.Entities.Configurations
+namespace AssetFlow.Data.Entities.Configurations
 {
     public class NavigationCreateItemEnum : BaseEnumModel
     {

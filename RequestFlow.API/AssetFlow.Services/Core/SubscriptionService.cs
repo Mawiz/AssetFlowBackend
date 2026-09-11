@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RequestFlow.Data.Data;
-using RequestFlow.Data.Entities.Tenant;
-using RequestFlow.Services.Contracts;
-using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.Tenant;
-using RequestFlow.Services.Dto;
+using AssetFlow.Data.Data;
+using AssetFlow.Data.Entities.Tenant;
+using AssetFlow.Services.Contracts;
+using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.Tenant;
+using AssetFlow.Services.Dto;
 using System.Linq.Dynamic.Core;
 using X.PagedList;
 using System.Net;
 
-namespace RequestFlow.Services.Core
+namespace AssetFlow.Services.Core
 {
     public class SubscriptionService : ISubscriptionService
     {
@@ -122,7 +122,7 @@ namespace RequestFlow.Services.Core
 
             model.OrderByProp ??= nameof(SubscriptionType.Id);
 
-            var ordered = model.SortDirection == (int)RequestFlow.Common.Enum.Enums.OrderBy.Ascending
+            var ordered = model.SortDirection == (int)AssetFlow.Common.Enum.Enums.OrderBy.Ascending
                 ? query.OrderBy(model.OrderByProp)
                 : query.OrderBy($"{model.OrderByProp} descending");
 

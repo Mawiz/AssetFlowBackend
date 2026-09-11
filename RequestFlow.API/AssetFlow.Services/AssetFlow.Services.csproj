@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RequestFlow.Common\RequestFlow.Common.csproj" />
-    <ProjectReference Include="..\RequestFlow.Data\RequestFlow.Data.csproj" />
+    <ProjectReference Include="..\AssetFlow.Common\AssetFlow.Common.csproj" />
+    <ProjectReference Include="..\AssetFlow.Data\AssetFlow.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

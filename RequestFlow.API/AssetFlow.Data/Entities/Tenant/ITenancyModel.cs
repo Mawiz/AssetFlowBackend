@@ -1,4 +1,4 @@
-﻿namespace RequestFlow.Data.Entities.Tenant
+﻿namespace AssetFlow.Data.Entities.Tenant
 {
     public interface ITenancyModel
     {

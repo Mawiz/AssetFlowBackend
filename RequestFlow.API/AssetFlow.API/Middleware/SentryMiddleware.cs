@@ -1,6 +1,6 @@
-﻿using RequestFlow.Common.Reporter;
+﻿using AssetFlow.Common.Reporter;
 
-namespace RequestFlow.API.Middleware
+namespace AssetFlow.API.Middleware
 {
     public class SentryMiddleware
     {

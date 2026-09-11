@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 
-namespace RequestFlow.Services.Mapping
+namespace AssetFlow.Services.Mapping
 {
     public class MappingProfile : Profile
     {

@@ -1,7 +1,7 @@
-﻿using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.User;
+﻿using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.User;
 
-namespace RequestFlow.Services.Contracts
+namespace AssetFlow.Services.Contracts
 {
     public interface IUserService
     {

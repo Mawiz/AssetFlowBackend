@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35818.85 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestFlow.API", "RequestFlow.API\RequestFlow.API.csproj", "{203E0679-7DAA-4868-A869-16833595E623}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetFlow.API", "AssetFlow.API\AssetFlow.API.csproj", "{203E0679-7DAA-4868-A869-16833595E623}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestFlow.Common", "RequestFlow.Common\RequestFlow.Common.csproj", "{6199C27C-D065-48BA-874C-DC2EE4FFCEB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetFlow.Common", "AssetFlow.Common\AssetFlow.Common.csproj", "{6199C27C-D065-48BA-874C-DC2EE4FFCEB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestFlow.Data", "RequestFlow.Data\RequestFlow.Data.csproj", "{03704945-75A9-4C88-BC39-3CD8958454EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetFlow.Data", "AssetFlow.Data\AssetFlow.Data.csproj", "{03704945-75A9-4C88-BC39-3CD8958454EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestFlow.Services", "RequestFlow.Services\RequestFlow.Services.csproj", "{0F989050-9595-4DC2-8BD1-4A557A0CE81B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetFlow.Services", "AssetFlow.Services\AssetFlow.Services.csproj", "{0F989050-9595-4DC2-8BD1-4A557A0CE81B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

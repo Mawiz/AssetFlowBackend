@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using RequestFlow.Services.Dto;
+using AssetFlow.Services.Dto;
 
-namespace RequestFlow.API.Filter
+namespace AssetFlow.API.Filter
 {
     public class ValidateModelStateFilter : ActionFilterAttribute
     {

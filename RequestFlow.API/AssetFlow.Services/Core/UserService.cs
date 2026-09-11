@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using RequestFlow.Common;
-using RequestFlow.Common.Helper;
-using RequestFlow.Common.Settings;
-using RequestFlow.Data.Data;
-using RequestFlow.Data.Identity;
-using RequestFlow.Services.Contracts;
-using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.User;
+using AssetFlow.Common;
+using AssetFlow.Common.Helper;
+using AssetFlow.Common.Settings;
+using AssetFlow.Data.Data;
+using AssetFlow.Data.Identity;
+using AssetFlow.Services.Contracts;
+using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.User;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Dynamic.Core;
 using System.Net;
@@ -18,10 +18,10 @@ using System.Security.Claims;
 using System.Text;
 using X.PagedList;
 using Z.EntityFramework.Plus;
-using static RequestFlow.Common.Enum.Enums;
-using static RequestFlow.Common.Helper.Constants;
+using static AssetFlow.Common.Enum.Enums;
+using static AssetFlow.Common.Helper.Constants;
 
-namespace RequestFlow.Services.Core
+namespace AssetFlow.Services.Core
 {
     public class UserService : IUserService
     {

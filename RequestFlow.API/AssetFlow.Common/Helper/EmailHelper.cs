@@ -1,7 +1,7 @@
-﻿using RequestFlow.Common.Settings;
+﻿using AssetFlow.Common.Settings;
 using System.Net.Mail;
 
-namespace RequestFlow.Common.Helper
+namespace AssetFlow.Common.Helper
 {
     public class EmailHelper
     {

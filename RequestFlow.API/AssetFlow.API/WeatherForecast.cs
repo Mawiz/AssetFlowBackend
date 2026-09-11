@@ -1,4 +1,4 @@
-namespace RequestFlow.API
+namespace AssetFlow.API
 {
     public class WeatherForecast
     {

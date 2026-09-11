@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using RequestFlow.Data.Entities.Tenant;
+using AssetFlow.Data.Entities.Tenant;
 using System.ComponentModel.DataAnnotations;
 
-namespace RequestFlow.Data.Identity
+namespace AssetFlow.Data.Identity
 {
     public class ApplicationUser : IdentityUser<int>, ITenancyModel
     {

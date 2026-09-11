@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace RequestFlow.API.Controllers
+namespace AssetFlow.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

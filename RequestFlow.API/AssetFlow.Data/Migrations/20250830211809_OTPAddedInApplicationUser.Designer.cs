@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RequestFlow.Data.Data;
+using AssetFlow.Data.Data;
 
 #nullable disable
 
-namespace RequestFlow.Data.Migrations
+namespace AssetFlow.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250830211809_OTPAddedInApplicationUser")]
@@ -113,7 +113,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.ACL.Resource", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.ACL.Resource", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -139,7 +139,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("Resources");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.ACL.RoleResource", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.ACL.RoleResource", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -162,7 +162,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("RoleResources");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.MenuItemEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.MenuItemEnum", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -215,7 +215,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("MenuItemEnums");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.MetaDataKeysEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.MetaDataKeysEnum", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -263,7 +263,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("MetaDataKeysEnums");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.NavigationCreateItemEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.NavigationCreateItemEnum", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -316,7 +316,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("NavigationCreateItemEnums");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.NavigationItemEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.NavigationItemEnum", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -369,7 +369,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("NavigationItemEnums");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.Language", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Language", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -422,7 +422,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("Languages");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.SubscriptionType", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.SubscriptionType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -475,7 +475,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("SubscriptionTypes");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.Tenant", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Tenant", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -520,7 +520,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("Tenants");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.TenantLanguage", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.TenantLanguage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -549,7 +549,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("TenantLanguages");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationRole", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -613,7 +613,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("ApplicationRoles", (string)null);
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationUser", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationUser", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -731,7 +731,7 @@ namespace RequestFlow.Data.Migrations
                     b.ToTable("ApplicationUsers", (string)null);
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationUserRole", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationUserRole", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -748,7 +748,7 @@ namespace RequestFlow.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationRole", null)
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -757,7 +757,7 @@ namespace RequestFlow.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", null)
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -766,7 +766,7 @@ namespace RequestFlow.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", null)
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -775,22 +775,22 @@ namespace RequestFlow.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", null)
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.ACL.RoleResource", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.ACL.RoleResource", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationRole", "ApplicationRole")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationRole", "ApplicationRole")
                         .WithMany("RoleResources")
                         .HasForeignKey("ApplicationRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RequestFlow.Data.Entities.ACL.Resource", "Resource")
+                    b.HasOne("AssetFlow.Data.Entities.ACL.Resource", "Resource")
                         .WithMany("RoleResources")
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -801,19 +801,19 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("Resource");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.MenuItemEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.MenuItemEnum", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationRole", "ApplicationRole")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationRole", "ApplicationRole")
                         .WithMany()
                         .HasForeignKey("ApplicationRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
@@ -824,13 +824,13 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.MetaDataKeysEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.MetaDataKeysEnum", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
@@ -839,19 +839,19 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.NavigationCreateItemEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.NavigationCreateItemEnum", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationRole", "ApplicationRole")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationRole", "ApplicationRole")
                         .WithMany()
                         .HasForeignKey("ApplicationRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
@@ -862,19 +862,19 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Configurations.NavigationItemEnum", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.NavigationItemEnum", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationRole", "ApplicationRole")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationRole", "ApplicationRole")
                         .WithMany()
                         .HasForeignKey("ApplicationRoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
@@ -885,13 +885,13 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.Language", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Language", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
@@ -900,13 +900,13 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.SubscriptionType", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.SubscriptionType", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
@@ -915,17 +915,17 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.Tenant", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Tenant", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
-                    b.HasOne("RequestFlow.Data.Entities.Tenant.SubscriptionType", "SubscriptionType")
+                    b.HasOne("AssetFlow.Data.Entities.Tenant.SubscriptionType", "SubscriptionType")
                         .WithMany("Tenants")
                         .HasForeignKey("SubscriptionTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -938,15 +938,15 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("SubscriptionType");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.TenantLanguage", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.TenantLanguage", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Entities.Tenant.Language", "Language")
+                    b.HasOne("AssetFlow.Data.Entities.Tenant.Language", "Language")
                         .WithMany("TenantLanguages")
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RequestFlow.Data.Entities.Tenant.Tenant", "Tenant")
+                    b.HasOne("AssetFlow.Data.Entities.Tenant.Tenant", "Tenant")
                         .WithMany("TenantLanguages")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -957,17 +957,17 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationRole", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
-                    b.HasOne("RequestFlow.Data.Entities.Tenant.Tenant", "Tenant")
+                    b.HasOne("AssetFlow.Data.Entities.Tenant.Tenant", "Tenant")
                         .WithMany("Roles")
                         .HasForeignKey("TenantId");
 
@@ -978,17 +978,17 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationUser", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationUser", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "CreatedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "ModifiedBy")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById");
 
-                    b.HasOne("RequestFlow.Data.Entities.Tenant.Tenant", "Tenant")
+                    b.HasOne("AssetFlow.Data.Entities.Tenant.Tenant", "Tenant")
                         .WithMany("Users")
                         .HasForeignKey("TenantId");
 
@@ -999,15 +999,15 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationUserRole", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationUserRole", b =>
                 {
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationRole", "Role")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationRole", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RequestFlow.Data.Identity.ApplicationUser", "User")
+                    b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1018,22 +1018,22 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.ACL.Resource", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.ACL.Resource", b =>
                 {
                     b.Navigation("RoleResources");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.Language", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Language", b =>
                 {
                     b.Navigation("TenantLanguages");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.SubscriptionType", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.SubscriptionType", b =>
                 {
                     b.Navigation("Tenants");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Entities.Tenant.Tenant", b =>
+            modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Tenant", b =>
                 {
                     b.Navigation("Roles");
 
@@ -1042,14 +1042,14 @@ namespace RequestFlow.Data.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationRole", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
                 {
                     b.Navigation("RoleResources");
 
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("RequestFlow.Data.Identity.ApplicationUser", b =>
+            modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationUser", b =>
                 {
                     b.Navigation("UserRoles");
                 });

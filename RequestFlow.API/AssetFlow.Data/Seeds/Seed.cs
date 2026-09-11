@@ -1,8 +1,8 @@
-﻿using RequestFlow.Data.Seeds.Configurations;
-using RequestFlow.Data.Seeds.User;
+﻿using AssetFlow.Data.Seeds.Configurations;
+using AssetFlow.Data.Seeds.User;
 using Microsoft.EntityFrameworkCore;
 
-namespace RequestFlow.Data.Seeds
+namespace AssetFlow.Data.Seeds
 {
     public class Seed
     {

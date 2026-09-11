@@ -1,7 +1,7 @@
-﻿using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.MetaData;
+﻿using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.MetaData;
 
-namespace RequestFlow.Services.Contracts
+namespace AssetFlow.Services.Contracts
 {
     public interface IMetaDataService
     {

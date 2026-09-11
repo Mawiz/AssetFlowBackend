@@ -1,4 +1,4 @@
-﻿namespace RequestFlow.Common.Reporter
+﻿namespace AssetFlow.Common.Reporter
 {
     public interface IErrorReporter
     {

@@ -1,6 +1,6 @@
-﻿using RequestFlow.Data.Identity;
+﻿using AssetFlow.Data.Identity;
 
-namespace RequestFlow.Data.Entities.ACL
+namespace AssetFlow.Data.Entities.ACL
 {
     public class RoleResource
     {

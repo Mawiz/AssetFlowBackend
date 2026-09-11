@@ -1,7 +1,7 @@
-﻿using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.Tenant;
+﻿using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.Tenant;
 
-namespace RequestFlow.Services.Contracts
+namespace AssetFlow.Services.Contracts
 {
     public interface ILanguageService
     {

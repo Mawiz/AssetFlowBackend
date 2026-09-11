@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace RequestFlow.Data.Provider
+namespace AssetFlow.Data.Provider
 {
     public interface ITenantProvider
     {

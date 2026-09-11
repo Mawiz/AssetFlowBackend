@@ -1,7 +1,7 @@
-﻿using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.Tenant;
+﻿using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.Tenant;
 
-namespace RequestFlow.Services.Contracts
+namespace AssetFlow.Services.Contracts
 {
     public interface ITenantService
     {
@@ -9,7 +9,7 @@ namespace RequestFlow.Services.Contracts
         Task<ResponseDto<TenantDto>> UpdateAsync(UpdateTenantDto dto);
         Task<ResponseDto<TenantDto>> GetByIdAsync(int id);
         Task<ResponseDto<List<TenantDto>>> GetAllAsync();
-        Task<ResponseDto<List<TenantDto>>> FilterAsync(RequestFlow.Services.Dto.SearchViewDto model);
+        Task<ResponseDto<List<TenantDto>>> FilterAsync(AssetFlow.Services.Dto.SearchViewDto model);
         Task<ResponseDto<bool>> ToggleStatusAsync(int id);
     }
 }

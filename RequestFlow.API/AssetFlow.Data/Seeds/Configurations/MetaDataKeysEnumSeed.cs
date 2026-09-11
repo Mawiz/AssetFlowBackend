@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RequestFlow.Data.Entities.Configurations;
+using AssetFlow.Data.Entities.Configurations;
 
-namespace RequestFlow.Data.Seeds.Configurations
+namespace AssetFlow.Data.Seeds.Configurations
 {
     public class MetaDataKeysEnumSeed
     {

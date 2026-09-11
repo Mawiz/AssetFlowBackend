@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RequestFlow.Data.Entities
+namespace AssetFlow.Data.Entities
 {
     public class BaseIdModel
     {

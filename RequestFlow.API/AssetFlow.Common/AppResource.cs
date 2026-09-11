@@ -1,4 +1,4 @@
-﻿namespace RequestFlow.Common
+﻿namespace AssetFlow.Common
 {
     public static class AppResource
     {

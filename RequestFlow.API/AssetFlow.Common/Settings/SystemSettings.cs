@@ -1,4 +1,4 @@
-﻿namespace RequestFlow.Common.Settings
+﻿namespace AssetFlow.Common.Settings
 {
     public class SystemSettings
     {

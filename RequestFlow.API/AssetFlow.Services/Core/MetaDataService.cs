@@ -1,15 +1,15 @@
-﻿using RequestFlow.Common;
-using RequestFlow.Common.Enum;
-using RequestFlow.Data.Data;
-using RequestFlow.Data.Entities;
-using RequestFlow.Data.Entities.Tenant;
-using RequestFlow.Data.Identity;
-using RequestFlow.Services.Contracts;
-using RequestFlow.Services.Dto;
-using RequestFlow.Services.Dto.MetaData;
+﻿using AssetFlow.Common;
+using AssetFlow.Common.Enum;
+using AssetFlow.Data.Data;
+using AssetFlow.Data.Entities;
+using AssetFlow.Data.Entities.Tenant;
+using AssetFlow.Data.Identity;
+using AssetFlow.Services.Contracts;
+using AssetFlow.Services.Dto;
+using AssetFlow.Services.Dto.MetaData;
 using System.Collections;
 
-namespace RequestFlow.Services.Core
+namespace AssetFlow.Services.Core
 {
     public class MetaDataService : IMetaDataService
     {

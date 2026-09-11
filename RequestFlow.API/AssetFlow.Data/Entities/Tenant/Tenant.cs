@@ -1,4 +1,4 @@
-﻿using RequestFlow.Data.Identity;
+﻿using AssetFlow.Data.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RequestFlow.Data.Entities.Tenant
+namespace AssetFlow.Data.Entities.Tenant
 {
     public class Tenant : BaseModel
     {

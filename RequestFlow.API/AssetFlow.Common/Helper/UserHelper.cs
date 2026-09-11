@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace RequestFlow.Common.Helper
+namespace AssetFlow.Common.Helper
 {
     public static class UserHelper
     {

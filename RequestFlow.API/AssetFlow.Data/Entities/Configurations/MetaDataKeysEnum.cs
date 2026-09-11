@@ -1,4 +1,4 @@
-﻿namespace RequestFlow.Data.Entities.Configurations
+﻿namespace AssetFlow.Data.Entities.Configurations
 {
     public class MetaDataKeysEnum : BaseEnumModel
     {

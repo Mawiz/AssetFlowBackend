@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using RequestFlow.Data.Entities.ACL;
-using RequestFlow.Data.Entities.Tenant;
+using AssetFlow.Data.Entities.ACL;
+using AssetFlow.Data.Entities.Tenant;
 using System.ComponentModel.DataAnnotations;
 
-namespace RequestFlow.Data.Identity
+namespace AssetFlow.Data.Identity
 {
     public class ApplicationRole : IdentityRole<int>, ITenancyModel
     {

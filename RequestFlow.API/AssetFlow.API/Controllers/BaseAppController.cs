@@ -1,8 +1,8 @@
-﻿using RequestFlow.API.Filter;
+﻿using AssetFlow.API.Filter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace RequestFlow.API.Controllers
+namespace AssetFlow.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

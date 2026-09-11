@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RequestFlow.Data.Entities
+namespace AssetFlow.Data.Entities
 {
     public class BaseEnumModel : BaseModel
     {

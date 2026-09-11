@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace RequestFlow.Data.Identity
+namespace AssetFlow.Data.Identity
 {
     public class ApplicationUserRole : IdentityUserRole<int>
     {

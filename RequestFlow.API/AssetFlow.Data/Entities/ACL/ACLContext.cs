@@ -1,10 +1,10 @@
-﻿using RequestFlow.Data.Entities.ACL;
-using RequestFlow.Data.Identity;
+﻿using AssetFlow.Data.Entities.ACL;
+using AssetFlow.Data.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace RequestFlow.Data.Entities.ACL
+namespace AssetFlow.Data.Entities.ACL
 {
     public abstract class ACLContext : IdentityDbContext
          <ApplicationUser,

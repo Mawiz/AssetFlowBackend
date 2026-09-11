@@ -1,6 +1,6 @@
-@RequestFlow.API_HostAddress = http://localhost:5239
+@AssetFlow.API_HostAddress = http://localhost:5239
 
-GET {{RequestFlow.API_HostAddress}}/weatherforecast/
+GET {{AssetFlow.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

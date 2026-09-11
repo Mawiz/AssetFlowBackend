@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RequestFlow.Services\RequestFlow.Services.csproj" />
+    <ProjectReference Include="..\AssetFlow.Services\AssetFlow.Services.csproj" />
   </ItemGroup>
 
 </Project>

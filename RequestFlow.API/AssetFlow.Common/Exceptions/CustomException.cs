@@ -1,4 +1,4 @@
-﻿namespace RequestFlow.Common.Exceptions
+﻿namespace AssetFlow.Common.Exceptions
 {
     public class CustomException : Exception
     {

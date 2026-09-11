@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RequestFlow.Services.Contracts;
-using RequestFlow.Services.Dto.Role;
+using AssetFlow.Services.Contracts;
+using AssetFlow.Services.Dto.Role;
 
-namespace RequestFlow.API.Controllers
+namespace AssetFlow.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -39,7 +39,7 @@ namespace RequestFlow.API.Controllers
         }
 
         [HttpPost("Filter")]
-        public async Task<IActionResult> Filter([FromBody] RequestFlow.Services.Dto.SearchViewDto model)
+        public async Task<IActionResult> Filter([FromBody] AssetFlow.Services.Dto.SearchViewDto model)
         {
             var result = await _service.FilterAsync(model);
             return Ok(result);

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RequestFlow.Data.Entities.Tenant
+namespace AssetFlow.Data.Entities.Tenant
 {
     public class TenantLanguage : BaseIdModel
     {

@@ -53,6 +53,6 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 /.vs
-/RequestFlow.API/.vs/RequestFlow.API/v17
-/RequestFlow.API/.vs/RequestFlow.API/FileContentIndex
+/RequestFlow.API/.vs/AssetFlow.API/v17
+/RequestFlow.API/.vs/AssetFlow.API/FileContentIndex
 /RequestFlow.API/.vs

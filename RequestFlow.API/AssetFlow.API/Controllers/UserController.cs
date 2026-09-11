@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RequestFlow.Services.Contracts;
-using RequestFlow.Services.Dto.User;
+using AssetFlow.Services.Contracts;
+using AssetFlow.Services.Dto.User;
 
-namespace RequestFlow.API.Controllers
+namespace AssetFlow.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

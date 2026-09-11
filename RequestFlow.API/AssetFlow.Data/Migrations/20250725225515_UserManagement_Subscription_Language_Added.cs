@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace RequestFlow.Data.Migrations
+namespace AssetFlow.Data.Migrations
 {
     /// <inheritdoc />
     public partial class UserManagement_Subscription_Language_Added : Migration

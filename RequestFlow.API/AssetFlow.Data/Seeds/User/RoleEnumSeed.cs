@@ -1,8 +1,8 @@
-﻿using RequestFlow.Data.Entities.ACL;
-using RequestFlow.Data.Identity;
+﻿using AssetFlow.Data.Entities.ACL;
+using AssetFlow.Data.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace RequestFlow.Data.Seeds.User
+namespace AssetFlow.Data.Seeds.User
 {
     public static class RoleEnumSeed
     {

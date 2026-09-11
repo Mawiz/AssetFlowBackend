@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
-namespace RequestFlow.Data.Extensions
+namespace AssetFlow.Data.Extensions
 {
     public static class ModelBuilderExtension
     {

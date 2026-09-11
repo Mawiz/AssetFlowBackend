@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RequestFlow.Common\RequestFlow.Common.csproj" />
+    <ProjectReference Include="..\AssetFlow.Common\AssetFlow.Common.csproj" />
   </ItemGroup>
 
 </Project>

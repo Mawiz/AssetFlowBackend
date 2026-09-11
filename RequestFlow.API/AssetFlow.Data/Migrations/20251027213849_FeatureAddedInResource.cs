@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace RequestFlow.Data.Migrations
+namespace AssetFlow.Data.Migrations
 {
     /// <inheritdoc />
     public partial class FeatureAddedInResource : Migration

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 
-namespace RequestFlow.Common.Helper
+namespace AssetFlow.Common.Helper
 {
     public static class HtmlGenerator
     {

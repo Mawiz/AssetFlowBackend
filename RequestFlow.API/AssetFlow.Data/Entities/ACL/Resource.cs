@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RequestFlow.Data.Entities.ACL
+namespace AssetFlow.Data.Entities.ACL
 {
     public class Resource
     {
