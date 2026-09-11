@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AssetFlow.API.Filter;
+using AssetFlow.Common.Helper;
 using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Dto.User;
 
@@ -16,38 +18,43 @@ namespace AssetFlow.API.Controllers
             this.userService = userService;
         }
 
-        [AllowAnonymous]
         [HttpPost]
+        [RequirePermission(Permissions.UserCreate)]
         public async Task<IActionResult> Create(UserCreateDto model)
         {
             return Ok(await userService.CreateAsync(model));
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(Permissions.UserView)]
         public async Task<IActionResult> GetById(int id)
         {
             return Ok(await userService.GetByIdAsync(id));
         }
 
         [HttpPut]
+        [RequirePermission(Permissions.UserUpdate)]
         public async Task<IActionResult> Update(UserUpdateDto model)
         {
             return Ok(await userService.UpdateAsync(model));
         }
 
         [HttpPost("Filter")]
+        [RequirePermission(Permissions.UserList)]
         public async Task<IActionResult> Filter([FromBody] FilterDto model)
         {
             return Ok(await userService.FilterAsync(model));
         }
 
         [HttpPost("RoleId")]
+        [RequirePermission(Permissions.UserList)]
         public async Task<IActionResult> GetByRole([FromBody] UserByRoleRequestDto model)
         {
             return Ok(await userService.GetByRoleAsync(model));
         }
 
         [HttpPut("ToggleActive")]
+        [RequirePermission(Permissions.UserToggle)]
         public async Task<IActionResult> ToggleActive([FromBody] UserToggleDto model)
         {
             return Ok(await userService.ToggleActiveAsync(model));

@@ -3,6 +3,6 @@
     public class UserByRoleDto : FilterViewDto
     {
         public string DisplayName { get; set; }
-        public int RoleId { get; set; }
+        public List<int> RoleIds { get; set; } = new();
     }
 }

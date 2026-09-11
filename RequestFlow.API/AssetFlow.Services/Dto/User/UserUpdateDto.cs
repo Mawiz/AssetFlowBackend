@@ -1,6 +1,4 @@
-﻿using AssetFlow.Common.Enum;
-
-namespace AssetFlow.Services.Dto.User
+﻿namespace AssetFlow.Services.Dto.User
 {
     public class UserUpdateDto
     {
@@ -8,8 +6,9 @@ namespace AssetFlow.Services.Dto.User
         public string FullName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public Enums.UserRole RoleId { get; set; }
+        public List<int> RoleIds { get; set; } = new();
         public bool IsActive { get; set; }
         public DateTime? ModifiedOn { get; set; }
+        public int? TenantId { get; set; }
     }
 }

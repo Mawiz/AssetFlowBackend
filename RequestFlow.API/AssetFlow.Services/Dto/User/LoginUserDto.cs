@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AssetFlow.Services.Dto.User
+﻿namespace AssetFlow.Services.Dto.User
 {
     public class LoginUserDto
     {
@@ -8,7 +6,7 @@ namespace AssetFlow.Services.Dto.User
         public string FullName { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
-        public int RoleId { get; set; }
+        public List<int> RoleIds { get; set; } = new();
         public bool IsActive { get; set; }
         public int? InventoryOwnerEnumId { get; set; }
         public List<int> FieldUnits { get; set; } = new();

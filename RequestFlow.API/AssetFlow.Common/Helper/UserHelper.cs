@@ -13,5 +13,13 @@ namespace AssetFlow.Common.Helper
         {
             return Convert.ToInt32(httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(u => u.Type == "roleId")?.Value);
         }
+
+        public static List<int> GetCurrentRoleIds(IHttpContextAccessor httpContextAccessor)
+        {
+            return httpContextAccessor.HttpContext.User.Claims
+                .Where(c => c.Type == "roleId")
+                .Select(c => Convert.ToInt32(c.Value))
+                .ToList();
+        }
     }
 }

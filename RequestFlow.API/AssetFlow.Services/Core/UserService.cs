@@ -60,10 +60,14 @@ namespace AssetFlow.Services.Core
                 FirstLetter = model.FirstLetter,
                 IsActive = true,
                 IsReset = true,
-                OtpCode = string.Empty
+                OtpCode = string.Empty,
+                TenantId = model.TenantId
             };
 
-            user.UserRoles.Add(new ApplicationUserRole { RoleId = (int)model.RoleId });
+            foreach (var roleId in (model.RoleIds ?? new List<int>()).Distinct())
+            {
+                user.UserRoles.Add(new ApplicationUserRole { RoleId = roleId });
+            }
 
             var result = await userManager.CreateAsync(user, model.Password);
 
@@ -88,8 +92,9 @@ namespace AssetFlow.Services.Core
                                  FullName = u.FullName,
                                  UserName = u.UserName,
                                  Email = u.Email,
-                                 RoleId = u.UserRoles.Single().RoleId,
-                                 RoleName = u.UserRoles.Single().Role.Name,
+                                 RoleIds = u.UserRoles.Select(r => r.RoleId).ToList(),
+                                 RoleNames = u.UserRoles.Select(r => r.Role.Name).ToList(),
+                                 RoleName = string.Join(", ", u.UserRoles.Select(r => r.Role.Name)),
                                  IsActive = u.IsActive
                              })
                              .FirstOrDefaultAsync();
@@ -138,9 +143,15 @@ namespace AssetFlow.Services.Core
                user.IsReset = true;
             }
 
-            user.IsActive = model.IsActive;  
-            user.UserRoles.Remove(user.UserRoles.Single());
-            user.UserRoles.Add(new ApplicationUserRole { RoleId = (int)model.RoleId, UserId = user.Id });
+            user.IsActive = model.IsActive;
+            if (model.TenantId.HasValue)
+                user.TenantId = model.TenantId;
+
+            user.UserRoles.Clear();
+            foreach (var roleId in (model.RoleIds ?? new List<int>()).Distinct())
+            {
+                user.UserRoles.Add(new ApplicationUserRole { RoleId = roleId, UserId = user.Id });
+            }
             
             await appDbContext.SaveChangesAsync();
 
@@ -164,8 +175,9 @@ namespace AssetFlow.Services.Core
                                         FullName = user.FullName,
                                         UserName = user.UserName,
                                         Email = user.Email,
-                                        RoleId = user.UserRoles.SingleOrDefault().RoleId,
-                                        RoleName = user.UserRoles.SingleOrDefault().Role.Name,
+                                        RoleIds = user.UserRoles.Select(r => r.RoleId).ToList(),
+                                        RoleNames = user.UserRoles.Select(r => r.Role.Name).ToList(),
+                                        RoleName = string.Join(", ", user.UserRoles.Select(r => r.Role.Name)),
                                         IsActive = user.IsActive,
                                         ModifiedOn = user.ModifiedOn,
                                         TenantId = user.TenantId,
@@ -386,53 +398,42 @@ namespace AssetFlow.Services.Core
 
                 response.Result.Token = Base64UrlEncoder.Encode(Encoding.UTF8.GetBytes(token));
                 response.Result.IsReset = true;
-                response.Result.User = new LoginUserDto
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    FullName = user.FullName,
-                    IsActive = user.IsActive,
-                    RoleId = user.UserRoles.Single().Role.Id,
-                };
+                response.Result.User = MapLoginUser(user, null);
 
                 return response;
             }
 
 
-            var userDetail = new LoginUserDto()
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                FullName = user.FullName,
-                Email = user.Email,
-                RoleId = user.UserRoles.SingleOrDefault().Role.Id,
-                IsActive = user.IsActive,
-                PageSize = systemSettings.PageSize
-            };
+            var userDetail = MapLoginUser(user, systemSettings.PageSize);
 
             user.LastActive = DateTime.UtcNow;
 
             await appDbContext.SaveChangesAsync();
 
+            var roleIds = GetRoleIds(user);
+
             var existingPermissions = await appDbContext.RoleResources
-                                            .Where(u => u.ApplicationRoleId == user.UserRoles.Single().Role.Id)
+                                            .Where(u => roleIds.Contains(u.ApplicationRoleId))
                                             .Select(r => r.Resource.ResourceName)
+                                            .Distinct()
                                             .ToListAsync();
 
             var menuItems = await appDbContext.MenuItemEnums
-                                  .Where(m => m.ApplicationRoleId == user.UserRoles.Single().Role.Id)
+                                  .Where(m => roleIds.Contains(m.ApplicationRoleId))
                                   .Select(mi => mi.DisplayName)
+                                  .Distinct()
                                   .ToListAsync();
 
             var navigationItems = await appDbContext.NavigationItemEnums
-                                        .Where(n => n.ApplicationRoleId == user.UserRoles.Single().Role.Id)
+                                        .Where(n => roleIds.Contains(n.ApplicationRoleId))
                                         .Select(ni => ni.DisplayName)
+                                        .Distinct()
                                         .ToListAsync();
 
             var navigationCreateItems = await appDbContext.NavigationCreateItemEnums
-                                              .Where(n => n.ApplicationRoleId == user.UserRoles.Single().Role.Id)
+                                              .Where(n => roleIds.Contains(n.ApplicationRoleId))
                                               .Select(ni => ni.DisplayName)
+                                              .Distinct()
                                               .ToListAsync();
 
             response.Result = new LoginResponseDto()
@@ -470,7 +471,7 @@ namespace AssetFlow.Services.Core
                                           {
                                               Id = user.Id,
                                               DisplayName = user.FullName,
-                                              RoleId = user.UserRoles.SingleOrDefault().Role.Id,
+                                              RoleIds = user.UserRoles.Select(r => r.RoleId).ToList(),
                                               IsActive = user.IsActive,
                                               ModifiedOn = user.ModifiedOn
                                           })
@@ -495,15 +496,7 @@ namespace AssetFlow.Services.Core
 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub,user.UserName),
-                new Claim(JwtRegisteredClaimNames.Email,user.Email),
-                new Claim("userId",user.Id.ToString()),
-                new Claim("tenantId",user.TenantId?.ToString() ?? "0"),
-                new Claim("roleId",user.UserRoles.Single().RoleId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
-            };
+            var claims = BuildUserClaims(user);
 
             var token = new JwtSecurityToken(
                 issuer: jwtSettings.Issuer,
@@ -579,16 +572,7 @@ namespace AssetFlow.Services.Core
         {
             if (user != null)
             {
-                var role = appDbContext.UserRoles.IgnoreQueryFilters().Where(r => r.UserId == user.Id).Include(ur => ur.Role).First();
-
-                claims = new[]
-                {
-                new Claim(JwtRegisteredClaimNames.Sub,user.UserName),
-                new Claim(JwtRegisteredClaimNames.Email,user.Email),
-                new Claim("userId",user.Id.ToString()),
-                new Claim("roleId",user.UserRoles.Single().RoleId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
-                };
+                claims = BuildUserClaims(user);
             }
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
@@ -607,6 +591,44 @@ namespace AssetFlow.Services.Core
 
             return encodetoken;
 
+        }
+
+        private static List<int> GetRoleIds(ApplicationUser user)
+        {
+            return user.UserRoles?.Select(r => r.RoleId).Distinct().ToList() ?? new List<int>();
+        }
+
+        private static LoginUserDto MapLoginUser(ApplicationUser user, int? pageSize)
+        {
+            return new LoginUserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                FullName = user.FullName,
+                IsActive = user.IsActive,
+                RoleIds = GetRoleIds(user),
+                PageSize = pageSize
+            };
+        }
+
+        private static List<Claim> BuildUserClaims(ApplicationUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("userId", user.Id.ToString()),
+                new Claim("tenantId", user.TenantId?.ToString() ?? "0"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            foreach (var roleId in GetRoleIds(user))
+            {
+                claims.Add(new Claim("roleId", roleId.ToString()));
+            }
+
+            return claims;
         }
 
         #endregion PRIVATE

@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using AssetFlow.API.Filter;
+using AssetFlow.Common.Helper;
 using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Dto;
 using AssetFlow.Services.Dto.Tenant;
@@ -17,6 +19,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpPost("create")]
+        [RequirePermission(Permissions.LanguageCreate)]
         public async Task<IActionResult> Create(CreateLanguageDto dto)
         {
             var response = await _languageService.CreateAsync(dto);
@@ -24,6 +27,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpPut("update")]
+        [RequirePermission(Permissions.LanguageUpdate)]
         public async Task<IActionResult> Update(UpdateLanguageDto dto)
         {
             var response = await _languageService.UpdateAsync(dto);
@@ -31,6 +35,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequirePermission(Permissions.LanguageView)]
         public async Task<IActionResult> Get(int id)
         {
             var response = await _languageService.GetByIdAsync(id);
@@ -38,6 +43,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpGet("list")]
+        [RequirePermission(Permissions.LanguageList)]
         public async Task<IActionResult> GetAll()
         {
             var response = await _languageService.GetAllAsync();
@@ -45,6 +51,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpPatch("toggle-status/{id}")]
+        [RequirePermission(Permissions.LanguageToggle)]
         public async Task<IActionResult> ToggleStatus(int id)
         {
             var response = await _languageService.ToggleStatusAsync(id);

@@ -39,9 +39,9 @@ namespace AssetFlow.Services.DtoValidation.User
                 })
                 .WithMessage(string.Format(AppResource.PasswordNotStrongEnough));
 
-            RuleFor(x => x.RoleId)
-                .IsInEnum()
-                .WithMessage(string.Format(AppResource.InValid, "Role"));
+            RuleFor(x => x.RoleIds)
+                .NotEmpty()
+                .WithMessage(string.Format(AppResource.CanNotBeEmpty, "Role"));
         }
     }
 }

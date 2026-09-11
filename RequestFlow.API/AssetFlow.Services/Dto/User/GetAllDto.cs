@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace AssetFlow.Services.Dto.User
+﻿namespace AssetFlow.Services.Dto.User
 {
     public class GetUserDto
     {
@@ -10,7 +7,8 @@ namespace AssetFlow.Services.Dto.User
         public string FullName { get; set; }
         public string Email { get; set; }
         public string UserName { get; set; }
-        public int RoleId { get; set; }
+        public List<int> RoleIds { get; set; } = new();
+        public List<string> RoleNames { get; set; } = new();
         public bool IsActive { get; set; }
         public DateTime? ModifiedOn { get; set; }
         public string RoleName { get; set; }

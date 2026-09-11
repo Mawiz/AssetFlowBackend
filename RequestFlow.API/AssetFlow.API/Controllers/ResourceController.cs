@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using AssetFlow.API.Filter;
+using AssetFlow.Common.Helper;
 using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Dto.Role.RoleResource;
 
@@ -14,24 +16,24 @@ namespace AssetFlow.API.Controllers
             _service = service;
         }
 
-        // 🔹 Create Resource
         [HttpPost]
+        [RequirePermission(Permissions.ResourceCreate)]
         public async Task<IActionResult> Create([FromBody] CreateResourceDto dto)
         {
             var result = await _service.CreateAsync(dto);
             return StatusCode((int)result.StatusCode, result);
         }
 
-        // 🔹 Update Resource
         [HttpPut]
+        [RequirePermission(Permissions.ResourceUpdate)]
         public async Task<IActionResult> Update([FromBody] UpdateResourceDto dto)
         {
             var result = await _service.UpdateAsync(dto);
             return StatusCode((int)result.StatusCode, result);
         }
 
-        // 🔹 Get All Resources
         [HttpGet]
+        [RequirePermission(Permissions.ResourceList)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _service.GetAllAsync();
@@ -39,6 +41,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpPost("Filter")]
+        [RequirePermission(Permissions.ResourceList)]
         public async Task<IActionResult> Filter([FromBody] AssetFlow.Services.Dto.SearchViewDto model)
         {
             var result = await _service.FilterAsync(model);
