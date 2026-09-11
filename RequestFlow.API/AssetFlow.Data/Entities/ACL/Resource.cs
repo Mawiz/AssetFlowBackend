@@ -10,7 +10,7 @@ namespace AssetFlow.Data.Entities.ACL
         public string ResourceName { get; set; }
 
         [StringLength(200)]
-        public string Verb { get; set; }
+        public string Verb { get; set; } = string.Empty;
         public bool IsBackEnd { get; set; }
 
         // 🔹 Self-referencing relationship

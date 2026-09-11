@@ -4,7 +4,6 @@ using AssetFlow.Data.Entities.ACL;
 using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Dto;
 using AssetFlow.Services.Dto.Role.RoleResource;
-using AssetFlow.Services.Dto;
 using System.Linq.Dynamic.Core;
 using X.PagedList;
 using System.Net;
@@ -20,12 +19,24 @@ namespace AssetFlow.Services.Core
             _context = context;
         }
 
-        // 🔹 Create Feature + SubResources
         public async Task<ResponseDto<ResourceDto>> CreateAsync(CreateResourceDto dto)
         {
             var response = new ResponseDto<ResourceDto>();
+            var featureName = dto.ResourceName?.Trim();
+            var subNames = (dto.SubResources ?? new List<CreateSubResourceDto>())
+                .Select(s => s.ResourceName?.Trim())
+                .Where(n => !string.IsNullOrEmpty(n))
+                .ToList();
 
-            if (await _context.Resources.AnyAsync(x => x.ResourceName == dto.ResourceName && x.FeatureId == null))
+            var validationError = ValidateNames(featureName, subNames);
+            if (validationError != null)
+            {
+                response.AddError(validationError);
+                response.StatusCode = HttpStatusCode.Conflict;
+                return response;
+            }
+
+            if (await FeatureNameExistsAsync(featureName, null))
             {
                 response.AddError("Feature already exists with this name.");
                 response.StatusCode = HttpStatusCode.Conflict;
@@ -34,19 +45,16 @@ namespace AssetFlow.Services.Core
 
             var feature = new Resource
             {
-                ResourceName = dto.ResourceName,
-                Verb = dto.Verb,
-                IsBackEnd = dto.IsBackEnd
+                ResourceName = featureName,
+                Verb = string.Empty
             };
 
-            // Add SubResources
-            foreach (var subDto in dto.SubResources ?? new List<CreateSubResourceDto>())
+            foreach (var name in subNames)
             {
                 feature.SubResources.Add(new Resource
                 {
-                    ResourceName = subDto.ResourceName,
-                    Verb = subDto.Verb,
-                    IsBackEnd = subDto.IsBackEnd
+                    ResourceName = name,
+                    Verb = string.Empty
                 });
             }
 
@@ -57,7 +65,6 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
-        // 🔹 Update Feature + SubResources
         public async Task<ResponseDto<ResourceDto>> UpdateAsync(UpdateResourceDto dto)
         {
             var response = new ResponseDto<ResourceDto>();
@@ -73,49 +80,60 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            // Update main feature
-            feature.ResourceName = dto.ResourceName;
-            feature.Verb = dto.Verb;
-            feature.IsBackEnd = dto.IsBackEnd;
-
+            var featureName = dto.ResourceName?.Trim();
             var incoming = dto.SubResources ?? new List<UpdateSubResourceDto>();
+            var subNames = incoming
+                .Select(s => s.ResourceName?.Trim())
+                .Where(n => !string.IsNullOrEmpty(n))
+                .ToList();
 
-            // Build set of incoming existing Ids
+            var validationError = ValidateNames(featureName, subNames);
+            if (validationError != null)
+            {
+                response.AddError(validationError);
+                response.StatusCode = HttpStatusCode.Conflict;
+                return response;
+            }
+
+            if (await FeatureNameExistsAsync(featureName, dto.Id))
+            {
+                response.AddError("Feature already exists with this name.");
+                response.StatusCode = HttpStatusCode.Conflict;
+                return response;
+            }
+
+            feature.ResourceName = featureName;
+
             var incomingIds = new HashSet<int>(incoming.Where(s => s.Id > 0).Select(s => s.Id));
 
-            // Remove SubResources that are not present in incoming DTO (deleted by client)
             var toRemove = feature.SubResources
                 .Where(sr => !incomingIds.Contains(sr.Id))
                 .ToList();
 
             foreach (var rem in toRemove)
             {
-                // Remove from parent collection and mark for deletion in EF
                 feature.SubResources.Remove(rem);
                 _context.Resources.Remove(rem);
             }
 
-            // Update or Add SubResources
             foreach (var subDto in incoming)
             {
+                var name = subDto.ResourceName?.Trim();
+                if (string.IsNullOrEmpty(name))
+                    continue;
+
                 if (subDto.Id > 0)
                 {
                     var existing = feature.SubResources.FirstOrDefault(x => x.Id == subDto.Id);
                     if (existing != null)
-                    {
-                        existing.ResourceName = subDto.ResourceName;
-                        existing.Verb = subDto.Verb;
-                        existing.IsBackEnd = subDto.IsBackEnd;
-                    }
+                        existing.ResourceName = name;
                 }
                 else
                 {
-                    // Add new SubResource
                     feature.SubResources.Add(new Resource
                     {
-                        ResourceName = subDto.ResourceName,
-                        Verb = subDto.Verb,
-                        IsBackEnd = subDto.IsBackEnd
+                        ResourceName = name,
+                        Verb = string.Empty
                     });
                 }
             }
@@ -125,7 +143,6 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
-        // 🔹 Get All Features with their SubResources
         public async Task<ResponseDto<List<ResourceDto>>> GetAllAsync()
         {
             var response = new ResponseDto<List<ResourceDto>>();
@@ -133,41 +150,32 @@ namespace AssetFlow.Services.Core
             var list = await _context.Resources
                 .Where(x => x.FeatureId == null)
                 .Include(x => x.SubResources)
-                .Select(x => MapToDto(x))
                 .ToListAsync();
 
-            response.Result = list;
+            response.Result = list.Select(MapToDto).ToList();
             return response;
         }
 
-        // 4C3 Filter + Pagination for Resources (top-level features)
         public async Task<ResponseDto<List<ResourceDto>>> FilterAsync(SearchViewDto model)
         {
             var response = new ResponseDto<List<ResourceDto>>();
 
             var query = _context.Resources
                 .Where(x => (string.IsNullOrEmpty(model.SearchText) || x.ResourceName.Contains(model.SearchText)) &&
-                    //(!model.StartDate.HasValue || x.CreatedOn >= model.StartDate.Value.Date) &&
-                    //(!model.EndDate.HasValue || x.CreatedOn >= model.EndDate.Value.Date) &&
-                    //(!model.IsActive.HasValue || x == model.IsActive) &&
                     x.FeatureId == null)
                 .Include(x => x.SubResources)
                 .Select(entity => new ResourceDto
                 {
                     Id = entity.Id,
                     ResourceName = entity.ResourceName,
-                    Verb = entity.Verb,
-                    IsBackEnd = entity.IsBackEnd,
                     SubResources = entity.SubResources.Select(sr => new SubResourceDto
                     {
                         Id = sr.Id,
-                        ResourceName = sr.ResourceName,
-                        Verb = sr.Verb,
-                        IsBackEnd = sr.IsBackEnd
+                        ResourceName = sr.ResourceName
                     }).ToList()
                 });
 
-            model.OrderByProp ??=nameof(Resource.Id);
+            model.OrderByProp ??= nameof(Resource.Id);
 
             var ordered = model.SortDirection == (int)AssetFlow.Common.Enum.Enums.OrderBy.Ascending
                 ? query.OrderBy(model.OrderByProp)
@@ -179,20 +187,39 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
+        private async Task<bool> FeatureNameExistsAsync(string featureName, int? excludeId)
+        {
+            var name = featureName.ToLower();
+            return await _context.Resources.AnyAsync(x =>
+                x.FeatureId == null &&
+                (!excludeId.HasValue || x.Id != excludeId.Value) &&
+                x.ResourceName.ToLower() == name);
+        }
+
+        private static string ValidateNames(string featureName, List<string> subNames)
+        {
+            if (string.IsNullOrWhiteSpace(featureName))
+                return "Feature name is required.";
+
+            if (subNames.GroupBy(n => n, StringComparer.OrdinalIgnoreCase).Any(g => g.Count() > 1))
+                return "A feature cannot have two permissions with the same name.";
+
+            if (subNames.Any(n => n.Equals(featureName, StringComparison.OrdinalIgnoreCase)))
+                return "A permission cannot have the same name as its feature.";
+
+            return null;
+        }
+
         private static ResourceDto MapToDto(Resource entity)
         {
             return new ResourceDto
             {
                 Id = entity.Id,
                 ResourceName = entity.ResourceName,
-                Verb = entity.Verb,
-                IsBackEnd = entity.IsBackEnd,
                 SubResources = entity.SubResources?.Select(sr => new SubResourceDto
                 {
                     Id = sr.Id,
-                    ResourceName = sr.ResourceName,
-                    Verb = sr.Verb,
-                    IsBackEnd = sr.IsBackEnd
+                    ResourceName = sr.ResourceName
                 }).ToList()
             };
         }

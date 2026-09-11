@@ -209,18 +209,12 @@ namespace AssetFlow.Services.Core
                         {
                             Id = rr.Resource.Id,
                             ResourceName = rr.Resource.ResourceName,
-                            Verb = rr.Resource.Verb,
-                            IsBackEnd = rr.Resource.IsBackEnd,
-
-                            // 🔹 SubResources = all RoleResources belonging to same Feature
                             SubResources = r.RoleResources
                                 .Where(sub => sub.Resource.FeatureId == rr.Resource.Id)
                                 .Select(sub => new SubResourceDto
                                 {
                                     Id = sub.Resource.Id,
-                                    ResourceName = sub.Resource.ResourceName,
-                                    Verb = sub.Resource.Verb,
-                                    IsBackEnd = sub.Resource.IsBackEnd
+                                    ResourceName = sub.Resource.ResourceName
                                 })
                                 .ToList()
                         })
