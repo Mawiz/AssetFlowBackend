@@ -45,16 +45,14 @@ namespace AssetFlow.Services.Core
 
             var feature = new Resource
             {
-                ResourceName = featureName,
-                Verb = string.Empty
+                ResourceName = featureName
             };
 
             foreach (var name in subNames)
             {
                 feature.SubResources.Add(new Resource
                 {
-                    ResourceName = name,
-                    Verb = string.Empty
+                    ResourceName = name
                 });
             }
 
@@ -132,8 +130,7 @@ namespace AssetFlow.Services.Core
                 {
                     feature.SubResources.Add(new Resource
                     {
-                        ResourceName = name,
-                        Verb = string.Empty
+                        ResourceName = name
                     });
                 }
             }
