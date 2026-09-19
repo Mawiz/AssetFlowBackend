@@ -52,7 +52,7 @@ namespace AssetFlow.Services.Dto.Role
         public string DisplayName { get; set; }
         public string Description { get; set; }
         public List<int> ResourceIds { get; set; } = new();
-        public int TenantId { get; set; }
+        public int? TenantId { get; set; }
     }
 
     public class RoleWithResourcesDto
