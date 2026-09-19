@@ -11,34 +11,34 @@ namespace AssetFlow.Data.Seeds.User
         {
             var dateTime = new DateTime(2021, 11, 26, 0, 0, 0);
 
-            modelBuilder.Entity<ApplicationRole>()
-                .HasData(new List<ApplicationRole>
-                {
-                    new ApplicationRole
-                    {
-                        Id = 1,
-                        Order = 1,
-                        Name = "Admin",
-                        NormalizedName = "ADMIN",
-                        DisplayName = "Admin",
-                        Description = "Admin",
-                        ConcurrencyStamp = string.Empty,
-                        CreatedOn = dateTime,
-                        ModifiedOn = dateTime
-                    },
-                    new ApplicationRole
-                    {
-                        Id = 2,
-                        Order = 2,
-                        Name = "Student",
-                        NormalizedName = "STUDENT",
-                        DisplayName = "Student",
-                        Description = "Student",
-                        ConcurrencyStamp = string.Empty,
-                        CreatedOn = dateTime,
-                        ModifiedOn = dateTime
-                    }
-                });
+            //modelBuilder.Entity<ApplicationRole>()
+            //    .HasData(new List<ApplicationRole>
+            //    {
+            //        new ApplicationRole
+            //        {
+            //            Id = 1,
+            //            Order = 1,
+            //            Name = "Admin",
+            //            NormalizedName = "ADMIN",
+            //            DisplayName = "Admin",
+            //            Description = "Admin",
+            //            ConcurrencyStamp = string.Empty,
+            //            CreatedOn = dateTime,
+            //            ModifiedOn = dateTime
+            //        },
+            //        new ApplicationRole
+            //        {
+            //            Id = 2,
+            //            Order = 2,
+            //            Name = "Student",
+            //            NormalizedName = "STUDENT",
+            //            DisplayName = "Student",
+            //            Description = "Student",
+            //            ConcurrencyStamp = string.Empty,
+            //            CreatedOn = dateTime,
+            //            ModifiedOn = dateTime
+            //        }
+            //    });
 
             const int userFeatureId = 1;
             const int roleFeatureId = 2;

@@ -167,7 +167,8 @@ namespace AssetFlow.Services.Core
                                      u.Email.Contains(model.SearchText) || u.FullName.Contains(model.SearchText)) &&
                                     (!model.Roles.Any() || u.UserRoles.Any(x => model.Roles.Contains(x.Role.Id))) &&
                                     (!model.IsActive.HasValue || u.IsActive == model.IsActive) &&
-                                    (!model.StartDate.HasValue || u.ModifiedOn > model.StartDate.Value))
+                                    (!model.StartDate.HasValue || u.ModifiedOn > model.StartDate.Value) &&
+                                    (!model.TenantId.HasValue || u.TenantId == model.TenantId))
                                     .Select(user => new GetUserDto()
                                     {
                                         Id = user.Id,

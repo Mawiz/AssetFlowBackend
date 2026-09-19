@@ -9,8 +9,8 @@ namespace AssetFlow.Data.Seeds
         public static void Run(ModelBuilder modelBuilder)
         {
             RoleEnumSeed.Seed(modelBuilder);
-            NavigationAndMenuEnumSeed.Seed(modelBuilder);
-            MetaDataKeysEnumSeed.Seed(modelBuilder);
+            //NavigationAndMenuEnumSeed.Seed(modelBuilder);
+            //MetaDataKeysEnumSeed.Seed(modelBuilder);
         }
     }
 }

@@ -95,7 +95,7 @@ namespace AssetFlow.Data.Data
                       .HasForeignKey(m => m.ModifiedById);
             });
 
-            //Seed.Run(modelBuilder);
+            Seed.Run(modelBuilder);
             // Always add tenant filter but make the filter depend on the DbContext's
             // TenantId property so it is evaluated per DbContext (per request).
             AddTenantFilter(modelBuilder);
