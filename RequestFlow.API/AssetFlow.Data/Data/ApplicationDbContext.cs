@@ -76,21 +76,35 @@ namespace AssetFlow.Data.Data
                     .IsRequired();
 
             });
-            modelBuilder.Entity<ApplicationUser>()
-    .HasIndex(u => u.NormalizedUserName)
-    .IsUnique(false);
-
-            modelBuilder.Entity<ApplicationUser>()
-.HasIndex(u => u.UserName)
-.IsUnique(false);
-
             modelBuilder.Entity<ApplicationUser>(user =>
             {
-
                 user.HasOne(e => e.CreatedBy)
                     .WithMany()
                     .HasForeignKey(m => m.CreatedById);
 
+                user.HasIndex(u => u.NormalizedUserName)
+                    .HasDatabaseName("UserNameIndex")
+                    .IsUnique(false);
+
+                user.HasIndex(u => u.NormalizedEmail)
+                    .HasDatabaseName("EmailIndex")
+                    .IsUnique(false);
+
+                user.HasIndex(u => new { u.TenantId, u.NormalizedUserName })
+                    .IsUnique();
+
+                user.HasIndex(u => new { u.TenantId, u.NormalizedEmail })
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<ApplicationRole>(role =>
+            {
+                role.HasIndex(r => r.NormalizedName)
+                    .HasDatabaseName("RoleNameIndex")
+                    .IsUnique(false);
+
+                role.HasIndex(r => new { r.TenantId, r.NormalizedName })
+                    .IsUnique();
             });
             
             modelBuilder.Entity<Tenant>(tenant =>

@@ -649,14 +649,17 @@ namespace AssetFlow.Services.Core
 
         private async Task<string?> ValidateUserUniquenessAsync(int? tenantId, string userName, string email, int? excludeUserId = null)
         {
-            var query = appDbContext.ApplicationUsers.AsQueryable();
+            var normalizedUserName = userManager.NormalizeName(userName);
+            var normalizedEmail = userManager.NormalizeEmail(email);
+
+            var query = appDbContext.ApplicationUsers.IgnoreQueryFilters().AsQueryable();
             if (excludeUserId.HasValue)
                 query = query.Where(u => u.Id != excludeUserId.Value);
 
-            if (await query.AnyAsync(u => u.UserName == userName && u.TenantId == tenantId))
+            if (await query.AnyAsync(u => u.NormalizedUserName == normalizedUserName && u.TenantId == tenantId))
                 return string.Format(AppResource.AlreadyExist, "User Name");
 
-            if (await query.AnyAsync(u => u.Email == email && u.TenantId == tenantId))
+            if (await query.AnyAsync(u => u.NormalizedEmail == normalizedEmail && u.TenantId == tenantId))
                 return string.Format(AppResource.AlreadyExist, "Email");
 
             return null;

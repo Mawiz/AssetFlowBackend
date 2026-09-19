@@ -18,6 +18,7 @@ using AssetFlow.Services.Core;
 using AssetFlow.Services.Dto.User;
 using AssetFlow.Services.DtoValidation.User;
 using AssetFlow.Services.Mapping;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,11 @@ builder.Services.AddTransient<IValidator<ChangePasswordDto>, ChangePasswordDtoVa
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
+builder.Services.RemoveAll<IUserValidator<ApplicationUser>>();
+builder.Services.RemoveAll<IRoleValidator<ApplicationRole>>();
+builder.Services.AddScoped<IUserValidator<ApplicationUser>, TenantScopedUserValidator>();
+builder.Services.AddScoped<IRoleValidator<ApplicationRole>, TenantScopedRoleValidator>();
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Password settings.
@@ -45,8 +51,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = Convert.ToInt32(builder.Configuration.GetSection("IdentitySettings:RequireLength").Value);
     options.Password.RequiredUniqueChars = Convert.ToInt32(builder.Configuration.GetSection("IdentitySettings:RequireUniqueChars").Value);
 
-    //Email settings
-    options.User.RequireUniqueEmail = true;
+    options.User.RequireUniqueEmail = false;
 });
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
