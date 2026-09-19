@@ -76,14 +76,23 @@ namespace AssetFlow.Data.Data
                     .IsRequired();
 
             });
+            modelBuilder.Entity<ApplicationUser>()
+    .HasIndex(u => u.NormalizedUserName)
+    .IsUnique(false);
+
+            modelBuilder.Entity<ApplicationUser>()
+.HasIndex(u => u.UserName)
+.IsUnique(false);
 
             modelBuilder.Entity<ApplicationUser>(user =>
             {
+
                 user.HasOne(e => e.CreatedBy)
                     .WithMany()
                     .HasForeignKey(m => m.CreatedById);
-            });
 
+            });
+            
             modelBuilder.Entity<Tenant>(tenant =>
             {
                 tenant.HasOne(e => e.CreatedBy)
@@ -95,7 +104,7 @@ namespace AssetFlow.Data.Data
                       .HasForeignKey(m => m.ModifiedById);
             });
 
-            //Seed.Run(modelBuilder);
+            Seed.Run(modelBuilder);
             // Always add tenant filter but make the filter depend on the DbContext's
             // TenantId property so it is evaluated per DbContext (per request).
             AddTenantFilter(modelBuilder);

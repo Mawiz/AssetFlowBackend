@@ -52,6 +52,20 @@ namespace AssetFlow.Services.Core
         {
             var response = new ResponseDto<string>();
 
+            var uniquenessError = await ValidateUserUniquenessAsync(model.TenantId, model.UserName, model.Email);
+            if (uniquenessError != null)
+            {
+                response.AddError(uniquenessError);
+                return response;
+            }
+
+            var rolesError = await ValidateRolesForTenantAsync(model.TenantId, model.RoleIds);
+            if (rolesError != null)
+            {
+                response.AddError(rolesError);
+                return response;
+            }
+
             var user = new ApplicationUser
             {
                 FullName = model.FullName,
@@ -123,11 +137,17 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            var isEmailExist = appDbContext.ApplicationUsers.Any(u => u.Id != model.Id && u.Email == model.Email);
-            
-            if (isEmailExist)
+            var uniquenessError = await ValidateUserUniquenessAsync(model.TenantId, user.UserName, model.Email, model.Id);
+            if (uniquenessError != null)
             {
-                response.AddError(string.Format(AppResource.AlreadyExist, "Email"));
+                response.AddError(uniquenessError);
+                return response;
+            }
+
+            var rolesError = await ValidateRolesForTenantAsync(model.TenantId, model.RoleIds);
+            if (rolesError != null)
+            {
+                response.AddError(rolesError);
                 return response;
             }
 
@@ -144,8 +164,7 @@ namespace AssetFlow.Services.Core
             }
 
             user.IsActive = model.IsActive;
-            if (model.TenantId.HasValue)
-                user.TenantId = model.TenantId;
+            user.TenantId = model.TenantId;
 
             user.UserRoles.Clear();
             foreach (var roleId in (model.RoleIds ?? new List<int>()).Distinct())
@@ -350,28 +369,24 @@ namespace AssetFlow.Services.Core
         {
             var response = new ResponseDto<LoginResponseDto>();
 
-            // 🔹 Find by username OR email
-            var user = await appDbContext.ApplicationUsers.IgnoreQueryFilters()
+            var candidates = await appDbContext.ApplicationUsers.IgnoreQueryFilters()
                              .Include(ur => ur.UserRoles)
                                 .ThenInclude(r => r.Role)
                              .Where(x => (x.UserName == model.UserName || x.Email == model.UserName)
                                          && x.IsActive)
-                             .SingleOrDefaultAsync();
+                             .ToListAsync();
 
-            if (user == null)
+            ApplicationUser? user = null;
+            foreach (var candidate in candidates)
             {
-                response.AddError(string.Format(AppResource.InValid, "username or password"));
-                return response;
+                if (await userManager.CheckPasswordAsync(candidate, model.Password))
+                {
+                    user = candidate;
+                    break;
+                }
             }
 
-            // 🔹 Always login using UserName (Identity requirement)
-            var signInResult = await signInManager.PasswordSignInAsync(
-                                    user.UserName,
-                                    model.Password,
-                                    true,
-                                    false);
-
-            if (!signInResult.Succeeded)
+            if (user == null)
             {
                 response.AddError(string.Format(AppResource.InValid, "username or password"));
                 return response;
@@ -630,6 +645,41 @@ namespace AssetFlow.Services.Core
             }
 
             return claims;
+        }
+
+        private async Task<string?> ValidateUserUniquenessAsync(int? tenantId, string userName, string email, int? excludeUserId = null)
+        {
+            var query = appDbContext.ApplicationUsers.AsQueryable();
+            if (excludeUserId.HasValue)
+                query = query.Where(u => u.Id != excludeUserId.Value);
+
+            if (await query.AnyAsync(u => u.UserName == userName && u.TenantId == tenantId))
+                return string.Format(AppResource.AlreadyExist, "User Name");
+
+            if (await query.AnyAsync(u => u.Email == email && u.TenantId == tenantId))
+                return string.Format(AppResource.AlreadyExist, "Email");
+
+            return null;
+        }
+
+        private async Task<string?> ValidateRolesForTenantAsync(int? tenantId, List<int>? roleIds)
+        {
+            var ids = (roleIds ?? new List<int>()).Distinct().ToList();
+            if (!ids.Any())
+                return string.Format(AppResource.CanNotBeEmpty, "Role");
+
+            var roles = await appDbContext.Roles
+                .Where(r => ids.Contains(r.Id))
+                .Select(r => new { r.Id, r.TenantId })
+                .ToListAsync();
+
+            if (roles.Count != ids.Count)
+                return string.Format(AppResource.InValid, "Role");
+
+            if (roles.Any(r => r.TenantId != tenantId))
+                return string.Format(AppResource.InValid, "Role for tenant");
+
+            return null;
         }
 
         #endregion PRIVATE

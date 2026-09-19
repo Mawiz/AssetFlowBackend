@@ -47,5 +47,14 @@ namespace AssetFlow.API.Controllers
             var result = await _service.FilterAsync(model);
             return Ok(result);
         }
+
+        [HttpGet("tenant")]
+        [HttpGet("tenant/{tenantId:int}")]
+        [RequirePermission(Permissions.RoleList)]
+        public async Task<IActionResult> GetByTenant(int? tenantId = null)
+        {
+            var result = await _service.GetRolesByTenantAsync(tenantId);
+            return StatusCode((int)result.StatusCode, result);
+        }
     }
 }

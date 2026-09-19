@@ -32,7 +32,7 @@ namespace AssetFlow.Services.Core
         {
             var response = new ResponseDto<RoleDto>();
 
-            if (await _context.Roles.AnyAsync(x => x.Name == dto.Name))
+            if (await _context.Roles.AnyAsync(x => x.Name == dto.Name && x.TenantId == dto.TenantId))
             {
                 response.AddError("Role already exists.");
                 response.StatusCode = HttpStatusCode.Conflict;
@@ -42,6 +42,7 @@ namespace AssetFlow.Services.Core
             var role = new ApplicationRole
             {
                 Name = dto.Name,
+                NormalizedName = dto.Name.ToUpperInvariant(),
                 DisplayName = dto.DisplayName,
                 Description = dto.Description,
                 CreatedOn = DateTime.UtcNow,
@@ -77,8 +78,16 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
+            if (await _context.Roles.AnyAsync(x => x.Id != dto.Id && x.Name == dto.Name && x.TenantId == dto.TenantId))
+            {
+                response.AddError("Role already exists.");
+                response.StatusCode = HttpStatusCode.Conflict;
+                return response;
+            }
+
             // Update basic info
             role.Name = dto.Name;
+            role.NormalizedName = dto.Name.ToUpperInvariant();
             role.DisplayName = dto.DisplayName;
             role.Description = dto.Description;
             role.ModifiedOn = DateTime.UtcNow;

@@ -125,22 +125,22 @@ namespace AssetFlow.Data.Seeds.User
 
                 });
 
-            modelBuilder.Entity<ApplicationRole>()
-                .HasData(new List<ApplicationRole>
-                {
-                    new ApplicationRole
-                    {
-                        Id = 1,
-                        Order = 1,
-                        Name = "CEO Manufactureur",
-                        NormalizedName = "CEO",
-                        DisplayName = "CEO",
-                        Description = "CEO ",
-                        ConcurrencyStamp = string.Empty,
-                        CreatedOn = dateTime,
-                        ModifiedOn = dateTime
-                    }
-                });
+            //modelBuilder.Entity<ApplicationRole>()
+            //    .HasData(new List<ApplicationRole>
+            //    {
+            //        new ApplicationRole
+            //        {
+            //            Id = 1,
+            //            Order = 1,
+            //            Name = "CEO Manufactureur",
+            //            NormalizedName = "CEO",
+            //            DisplayName = "CEO",
+            //            Description = "CEO ",
+            //            ConcurrencyStamp = string.Empty,
+            //            CreatedOn = dateTime,
+            //            ModifiedOn = dateTime
+            //        }
+            //    });
 
             //var adminRoleResources = Enumerable.Range(8, 30)
 
