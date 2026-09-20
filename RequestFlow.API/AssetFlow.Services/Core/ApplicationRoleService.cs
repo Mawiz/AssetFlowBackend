@@ -134,6 +134,26 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
+        public async Task<ResponseDto<RoleDto>> GetByIdAsync(int id)
+        {
+            var response = new ResponseDto<RoleDto>();
+
+            var role = await _context.Roles
+                .Include(r => r.RoleResources)
+                .Include(r => r.Tenant)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (role == null)
+            {
+                response.AddError("Role not found.");
+                response.StatusCode = HttpStatusCode.NotFound;
+                return response;
+            }
+
+            response.Result = MapToDto(role);
+            return response;
+        }
+
         // 🔹 Get All Roles
         public async Task<ResponseDto<List<RoleDto>>> GetAllAsync()
         {

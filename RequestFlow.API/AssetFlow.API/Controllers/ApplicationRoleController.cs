@@ -40,6 +40,14 @@ namespace AssetFlow.API.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
+        [HttpGet("{id:int}")]
+        [RequirePermission(Permissions.RoleView)]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            return StatusCode((int)result.StatusCode, result);
+        }
+
         [HttpPost("Filter")]
         [RequirePermission(Permissions.RoleList)]
         public async Task<IActionResult> Filter([FromBody] AssetFlow.Services.Dto.SearchViewDto model)
@@ -50,7 +58,7 @@ namespace AssetFlow.API.Controllers
 
         [HttpGet("tenant")]
         [HttpGet("tenant/{tenantId:int}")]
-        [RequirePermission(Permissions.RoleList)]
+        //[RequirePermission(Permissions.RoleList)]
         public async Task<IActionResult> GetByTenant(int? tenantId = null)
         {
             var result = await _service.GetRolesByTenantAsync(tenantId);
