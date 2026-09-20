@@ -10,7 +10,7 @@ namespace AssetFlow.Services.Contracts
         Task<ResponseDto<LocationDto>> GetByIdAsync(int id);
         Task<ResponseDto<List<LocationDto>>> GetAllAsync();
         Task<ResponseDto<List<LocationDto>>> FilterAsync(LocationFilterDto model);
-        Task<ResponseDto<List<LocationDto>>> GetByLocationTypeIdAsync(int locationTypeId);
+        Task<ResponseDto<List<LocationDto>>> GetByLocationTypeIdAsync(int locationTypeId, int? tenantId = null);
         Task<ResponseDto<bool>> DeleteAsync(int id);
     }
 }

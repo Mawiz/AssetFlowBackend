@@ -59,9 +59,9 @@ namespace AssetFlow.API.Controllers
 
         [HttpGet("by-location-type/{locationTypeId}")]
         [RequirePermission(Permissions.LocationView)]
-        public async Task<IActionResult> GetByLocationTypeId(int locationTypeId)
+        public async Task<IActionResult> GetByLocationTypeId(int locationTypeId, [FromQuery] int? tenantId)
         {
-            var response = await _service.GetByLocationTypeIdAsync(locationTypeId);
+            var response = await _service.GetByLocationTypeIdAsync(locationTypeId, tenantId);
             return StatusCode((int)response.StatusCode, response);
         }
 

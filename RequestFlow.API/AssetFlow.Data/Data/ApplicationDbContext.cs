@@ -141,7 +141,6 @@ namespace AssetFlow.Data.Data
 
             modelBuilder.Entity<LocationType>(lt =>
             {
-                lt.HasIndex(x => x.Code).IsUnique();
                 lt.HasOne(x => x.ParentLocationType)
                     .WithMany(x => x.ChildLocationTypes)
                     .HasForeignKey(x => x.ParentLocationTypeId)
@@ -150,7 +149,6 @@ namespace AssetFlow.Data.Data
 
             modelBuilder.Entity<Location>(loc =>
             {
-                loc.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
                 loc.HasOne(x => x.LocationType)
                     .WithMany(x => x.Locations)
                     .HasForeignKey(x => x.LocationTypeId)

@@ -26,7 +26,18 @@ namespace AssetFlow.Services.Core
         {
             var response = new ResponseDto<LocationDto>();
 
-            var validation = await ValidateLocationAsync(dto.LocationTypeId, dto.ParentLocationId, null);
+            var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, dto.TenantId);
+            if (!tenantResult.Ok)
+            {
+                response.AddError(tenantResult.Error);
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            var tenantId = tenantResult.TenantId;
+
+            var validation = await ValidateLocationAsync(
+                dto.LocationTypeId, dto.ParentLocationId, null, tenantId);
             if (!validation.IsValid)
             {
                 response.AddError(validation.Error);
@@ -34,20 +45,10 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Code))
+            if (string.IsNullOrWhiteSpace(dto.Name))
             {
-                response.AddError("Name and Code are required.");
+                response.AddError("Name is required.");
                 response.StatusCode = HttpStatusCode.BadRequest;
-                return response;
-            }
-
-            var code = dto.Code.Trim();
-            var tenantId = (int?)_tenantProvider.GetTenantId();
-            if (tenantId == 0) tenantId = null;
-            if (await _context.Locations.AnyAsync(x => x.TenantId == tenantId && x.Code == code))
-            {
-                response.AddError("Location code already exists for this tenant.");
-                response.StatusCode = HttpStatusCode.Conflict;
                 return response;
             }
 
@@ -56,7 +57,6 @@ namespace AssetFlow.Services.Core
                 LocationTypeId = dto.LocationTypeId,
                 ParentLocationId = dto.ParentLocationId,
                 Name = dto.Name.Trim(),
-                Code = code,
                 Description = dto.Description,
                 IsActive = dto.IsActive,
                 TenantId = tenantId
@@ -81,7 +81,18 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            var validation = await ValidateLocationAsync(dto.LocationTypeId, dto.ParentLocationId, dto.Id);
+            var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, dto.TenantId);
+            if (!tenantResult.Ok)
+            {
+                response.AddError(tenantResult.Error);
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            var tenantId = tenantResult.TenantId;
+
+            var validation = await ValidateLocationAsync(
+                dto.LocationTypeId, dto.ParentLocationId, dto.Id, tenantId);
             if (!validation.IsValid)
             {
                 response.AddError(validation.Error);
@@ -89,25 +100,17 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Code))
+            if (string.IsNullOrWhiteSpace(dto.Name))
             {
-                response.AddError("Name and Code are required.");
+                response.AddError("Name is required.");
                 response.StatusCode = HttpStatusCode.BadRequest;
                 return response;
             }
 
-            var code = dto.Code.Trim();
-            if (await _context.Locations.AnyAsync(x => x.TenantId == entity.TenantId && x.Code == code && x.Id != dto.Id))
-            {
-                response.AddError("Location code already exists for this tenant.");
-                response.StatusCode = HttpStatusCode.Conflict;
-                return response;
-            }
-
+            entity.TenantId = tenantId;
             entity.LocationTypeId = dto.LocationTypeId;
             entity.ParentLocationId = dto.ParentLocationId;
             entity.Name = dto.Name.Trim();
-            entity.Code = code;
             entity.Description = dto.Description;
             entity.IsActive = dto.IsActive;
 
@@ -136,7 +139,7 @@ namespace AssetFlow.Services.Core
         public async Task<ResponseDto<List<LocationDto>>> GetAllAsync()
         {
             var response = new ResponseDto<List<LocationDto>>();
-            response.Result = await BuildLocationQuery().ToListAsync();
+            response.Result = await BuildLocationDtoQuery().ToListAsync();
             return response;
         }
 
@@ -144,43 +147,36 @@ namespace AssetFlow.Services.Core
         {
             var response = new ResponseDto<List<LocationDto>>();
 
-            var query = _context.Locations
+            IQueryable<Location> query = _context.Locations
                 .Include(x => x.LocationType)
                 .Include(x => x.ParentLocation)
-                .Where(x =>
-                    (string.IsNullOrEmpty(model.SearchText) ||
+                .Include(x => x.Tenant);
+
+            query = TenantScopeHelper.ApplyAdminListTenantFilter(query, _tenantProvider, model.TenantId);
+
+            query = query.Where(x =>
+                (string.IsNullOrEmpty(model.SearchText) ||
                      x.Name.Contains(model.SearchText) ||
-                     x.Code.Contains(model.SearchText) ||
                      x.Description.Contains(model.SearchText)) &&
-                    (!model.IsActive.HasValue || x.IsActive == model.IsActive) &&
-                    (!model.StartDate.HasValue || x.CreatedOn >= model.StartDate.Value.Date) &&
-                    (!model.EndDate.HasValue || x.CreatedOn <= model.EndDate.Value.Date) &&
-                    (!model.LocationTypeId.HasValue || x.LocationTypeId == model.LocationTypeId))
-                .Select(x => new LocationDto
-                {
-                    Id = x.Id,
-                    LocationTypeId = x.LocationTypeId,
-                    LocationTypeName = x.LocationType.Name,
-                    ParentLocationId = x.ParentLocationId,
-                    ParentLocationName = x.ParentLocation != null ? x.ParentLocation.Name : null,
-                    Name = x.Name,
-                    Code = x.Code,
-                    Description = x.Description,
-                    IsActive = x.IsActive
-                });
+                (!model.IsActive.HasValue || x.IsActive == model.IsActive) &&
+                (!model.StartDate.HasValue || x.CreatedOn >= model.StartDate.Value.Date) &&
+                (!model.EndDate.HasValue || x.CreatedOn <= model.EndDate.Value.Date) &&
+                (!model.LocationTypeId.HasValue || x.LocationTypeId == model.LocationTypeId));
+
+            var projected = query.Select(ProjectToDto());
 
             model.OrderByProp ??= nameof(Location.Name);
 
             var ordered = model.SortDirection == (int)AssetFlow.Common.Enum.Enums.OrderBy.Ascending
-                ? query.OrderBy(model.OrderByProp)
-                : query.OrderBy($"{model.OrderByProp} descending");
+                ? projected.OrderBy(model.OrderByProp)
+                : projected.OrderBy($"{model.OrderByProp} descending");
 
             var paged = await ordered.ToPagedListAsync(model.PageNumber, model.PageSize);
             response.Result = paged.ToList();
             return response;
         }
 
-        public async Task<ResponseDto<List<LocationDto>>> GetByLocationTypeIdAsync(int locationTypeId)
+        public async Task<ResponseDto<List<LocationDto>>> GetByLocationTypeIdAsync(int locationTypeId, int? tenantId = null)
         {
             var response = new ResponseDto<List<LocationDto>>();
 
@@ -191,9 +187,25 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            response.Result = await BuildLocationQuery()
-                .Where(x => x.LocationTypeId == locationTypeId && x.IsActive)
+            var query = _context.Locations
+                .Include(x => x.LocationType)
+                .Include(x => x.ParentLocation)
+                .Include(x => x.Tenant)
+                .Where(x => x.LocationTypeId == locationTypeId && x.IsActive);
+
+            var effectiveTenantId = TenantScopeHelper.GetContextTenantId(_tenantProvider);
+            if (effectiveTenantId.HasValue)
+            {
+                query = query.Where(x => x.TenantId == effectiveTenantId);
+            }
+            else if (tenantId.HasValue)
+            {
+                query = query.Where(x => x.TenantId == tenantId);
+            }
+
+            response.Result = await query
                 .OrderBy(x => x.Name)
+                .Select(ProjectToDto())
                 .ToListAsync();
 
             return response;
@@ -226,38 +238,53 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
-        private IQueryable<LocationDto> BuildLocationQuery()
+        private IQueryable<Location> BuildLocationQuery()
         {
             return _context.Locations
                 .Include(x => x.LocationType)
                 .Include(x => x.ParentLocation)
-                .Select(x => new LocationDto
-                {
-                    Id = x.Id,
-                    LocationTypeId = x.LocationTypeId,
-                    LocationTypeName = x.LocationType.Name,
-                    ParentLocationId = x.ParentLocationId,
-                    ParentLocationName = x.ParentLocation != null ? x.ParentLocation.Name : null,
-                    Name = x.Name,
-                    Code = x.Code,
-                    Description = x.Description,
-                    IsActive = x.IsActive
-                });
+                .Include(x => x.Tenant);
+        }
+
+        private IQueryable<LocationDto> BuildLocationDtoQuery()
+        {
+            return BuildLocationQuery().Select(ProjectToDto());
+        }
+
+        private static System.Linq.Expressions.Expression<Func<Location, LocationDto>> ProjectToDto()
+        {
+            return x => new LocationDto
+            {
+                Id = x.Id,
+                TenantId = x.TenantId,
+                TenantName = x.Tenant != null ? x.Tenant.CompanyName : null,
+                LocationTypeId = x.LocationTypeId,
+                LocationTypeName = x.LocationType.Name,
+                ParentLocationId = x.ParentLocationId,
+                ParentLocationName = x.ParentLocation != null ? x.ParentLocation.Name : null,
+                Name = x.Name,
+                Description = x.Description,
+                IsActive = x.IsActive
+            };
         }
 
         private async Task<LocationDto> MapToDtoAsync(int id)
         {
-            return await BuildLocationQuery().FirstOrDefaultAsync(x => x.Id == id);
+            return await BuildLocationDtoQuery().FirstOrDefaultAsync(x => x.Id == id);
         }
 
         private async Task<(bool IsValid, string Error)> ValidateLocationAsync(
             int locationTypeId,
             int? parentLocationId,
-            int? locationId)
+            int? locationId,
+            int? tenantId)
         {
             var locationType = await _context.LocationTypes.FindAsync(locationTypeId);
             if (locationType == null)
                 return (false, "Location Type not found.");
+
+            if (locationType.TenantId != tenantId)
+                return (false, "Location Type must belong to the same tenant.");
 
             if (!locationType.ParentLocationTypeId.HasValue)
             {
@@ -278,9 +305,7 @@ namespace AssetFlow.Services.Core
                 if (parentLocation.LocationTypeId != locationType.ParentLocationTypeId.Value)
                     return (false, "Parent Location must be of the required parent type.");
 
-                var tenantId = (int?)_tenantProvider.GetTenantId();
-                if (tenantId == 0) tenantId = null;
-                if (tenantId.HasValue && parentLocation.TenantId != tenantId)
+                if (parentLocation.TenantId != tenantId)
                     return (false, "Parent Location must belong to the same tenant.");
             }
 

@@ -44,9 +44,9 @@ namespace AssetFlow.API.Controllers
 
         [HttpGet]
         [RequirePermission(Permissions.LocationTypeView)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? tenantId)
         {
-            var response = await _service.GetAllAsync();
+            var response = await _service.GetAllAsync(tenantId);
             return Ok(response);
         }
 
