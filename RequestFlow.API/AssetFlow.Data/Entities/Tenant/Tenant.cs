@@ -21,5 +21,7 @@ namespace AssetFlow.Data.Entities.Tenant
         public virtual ICollection<ApplicationRole> Roles { get; set; } = new List<ApplicationRole>();
 
         public virtual ICollection<TenantLanguage> TenantLanguages { get; set; } = new List<TenantLanguage>();
+
+        public virtual ICollection<TenantResource> TenantResources { get; set; } = new List<TenantResource>();
     }
 }

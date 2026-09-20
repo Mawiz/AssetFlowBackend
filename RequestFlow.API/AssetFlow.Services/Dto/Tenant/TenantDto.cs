@@ -5,6 +5,7 @@
         public string CompanyName { get; set; }
         public int SubscriptionTypeId { get; set; }
         public List<int> LanguageIds { get; set; } = new();
+        public List<int> ResourceIds { get; set; } = new();
     }
 
     public class UpdateTenantDto
@@ -13,6 +14,7 @@
         public string CompanyName { get; set; }
         public int SubscriptionTypeId { get; set; }
         public List<int> LanguageIds { get; set; } = new();
+        public List<int> ResourceIds { get; set; } = new();
     }
 
     public class TenantDto
@@ -22,6 +24,7 @@
         public int SubscriptionTypeId { get; set; }
         public string   SubscriptionName { get; set; }
         public List<int> LanguageIds { get; set; } = new();
+        public List<int> ResourceIds { get; set; } = new();
         public bool IsActive { get; set; }
     }
 }

@@ -184,6 +184,49 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
+        /// <summary>
+        /// Full catalog when tenantId is null (system roles). Otherwise only permissions granted to the tenant.
+        /// </summary>
+        public async Task<ResponseDto<List<ResourceDto>>> GetForRoleAssignmentAsync(int? tenantId)
+        {
+            var response = new ResponseDto<List<ResourceDto>>();
+
+            if (!tenantId.HasValue)
+            {
+                return await GetAllAsync();
+            }
+
+            var allowedIds = await _context.TenantResources
+                .Where(tr => tr.TenantId == tenantId.Value)
+                .Select(tr => tr.ResourceId)
+                .ToHashSetAsync();
+
+            var features = await _context.Resources
+                .Where(r => r.FeatureId == null)
+                .Include(r => r.SubResources)
+                .OrderBy(r => r.Id)
+                .ToListAsync();
+
+            response.Result = features
+                .Select(f => new ResourceDto
+                {
+                    Id = f.Id,
+                    ResourceName = f.ResourceName,
+                    SubResources = f.SubResources
+                        .Where(s => allowedIds.Contains(s.Id))
+                        .Select(sr => new SubResourceDto
+                        {
+                            Id = sr.Id,
+                            ResourceName = sr.ResourceName
+                        })
+                        .ToList()
+                })
+                .Where(f => f.SubResources.Any())
+                .ToList();
+
+            return response;
+        }
+
         private async Task<bool> FeatureNameExistsAsync(string featureName, int? excludeId)
         {
             var name = featureName.ToLower();

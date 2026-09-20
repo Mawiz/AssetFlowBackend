@@ -39,6 +39,14 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
+            var resourceError = await ValidateRoleResourcesForTenantAsync(dto.TenantId, dto.ResourceIds);
+            if (resourceError != null)
+            {
+                response.AddError(resourceError);
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
             var role = new ApplicationRole
             {
                 Name = dto.Name,
@@ -82,6 +90,14 @@ namespace AssetFlow.Services.Core
             {
                 response.AddError("Role already exists.");
                 response.StatusCode = HttpStatusCode.Conflict;
+                return response;
+            }
+
+            var resourceError = await ValidateRoleResourcesForTenantAsync(dto.TenantId, dto.ResourceIds);
+            if (resourceError != null)
+            {
+                response.AddError(resourceError);
+                response.StatusCode = HttpStatusCode.BadRequest;
                 return response;
             }
 
@@ -234,6 +250,37 @@ namespace AssetFlow.Services.Core
 
             response.Result = roles;
             return response;
+        }
+
+        private async Task<string?> ValidateRoleResourcesForTenantAsync(int? tenantId, List<int>? resourceIds)
+        {
+            if (!tenantId.HasValue)
+                return null;
+
+            var allowed = await _context.TenantResources
+                .Where(tr => tr.TenantId == tenantId.Value)
+                .Select(tr => tr.ResourceId)
+                .ToHashSetAsync();
+
+            if (!allowed.Any())
+                return "This tenant has no permissions assigned. Update the tenant permission set first.";
+
+            var ids = (resourceIds ?? new List<int>()).Distinct().ToList();
+            if (!ids.Any())
+                return null;
+
+            var resources = await _context.Resources
+                .Where(r => ids.Contains(r.Id))
+                .Select(r => new { r.Id, r.FeatureId })
+                .ToListAsync();
+
+            foreach (var resource in resources.Where(r => r.FeatureId != null))
+            {
+                if (!allowed.Contains(resource.Id))
+                    return "One or more permissions are not allowed for this tenant.";
+            }
+
+            return null;
         }
     }
 }

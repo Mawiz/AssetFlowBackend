@@ -56,10 +56,21 @@ namespace AssetFlow.Services.Core
                 });
             }
 
+            var resourceError = await ValidateTenantResourceIdsAsync(dto.ResourceIds);
+            if (resourceError != null)
+            {
+                response.AddError(resourceError);
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
             applicationDbContext.Tenants.Add(entity);
             await applicationDbContext.SaveChangesAsync();
 
-            response.Result = MapToDto(entity);
+            await SyncTenantResourcesAsync(entity.Id, dto.ResourceIds);
+            await applicationDbContext.SaveChangesAsync();
+
+            response.Result = await LoadTenantDtoAsync(entity.Id);
             return response;
         }
 
@@ -69,6 +80,7 @@ namespace AssetFlow.Services.Core
 
             var entity = await applicationDbContext.Tenants
                 .Include(t => t.TenantLanguages)
+                .Include(t => t.TenantResources)
                 .Include(t => t.SubscriptionType)
                 .FirstOrDefaultAsync(t => t.Id == dto.Id);
 
@@ -94,10 +106,21 @@ namespace AssetFlow.Services.Core
                 });
             }
 
+            var resourceError = await ValidateTenantResourceIdsAsync(dto.ResourceIds);
+            if (resourceError != null)
+            {
+                response.AddError(resourceError);
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            await SyncTenantResourcesAsync(entity.Id, dto.ResourceIds);
+            await PruneTenantRoleResourcesAsync(entity.Id, dto.ResourceIds);
+
             applicationDbContext.Tenants.Update(entity);
             await applicationDbContext.SaveChangesAsync();
 
-            response.Result = MapToDto(entity);
+            response.Result = await LoadTenantDtoAsync(entity.Id);
             return response;
         }
 
@@ -107,6 +130,7 @@ namespace AssetFlow.Services.Core
 
             var entity = await applicationDbContext.Tenants
                 .Include(t => t.TenantLanguages)
+                .Include(t => t.TenantResources)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (entity == null)
@@ -197,8 +221,74 @@ namespace AssetFlow.Services.Core
                 SubscriptionTypeId = entity.SubscriptionTypeId,
                 SubscriptionName = entity.SubscriptionType?.DisplayName,
                 LanguageIds = entity.TenantLanguages?.Select(tl => tl.LanguageId).ToList() ?? new(),
+                ResourceIds = entity.TenantResources?.Select(tr => tr.ResourceId).ToList() ?? new(),
                 IsActive = entity.IsActive
             };
+        }
+
+        private async Task<TenantDto> LoadTenantDtoAsync(int tenantId)
+        {
+            var entity = await applicationDbContext.Tenants
+                .Include(t => t.TenantLanguages)
+                .Include(t => t.TenantResources)
+                .Include(t => t.SubscriptionType)
+                .FirstAsync(t => t.Id == tenantId);
+            return MapToDto(entity);
+        }
+
+        private async Task<string?> ValidateTenantResourceIdsAsync(List<int>? resourceIds)
+        {
+            var ids = (resourceIds ?? new List<int>()).Distinct().ToList();
+            if (!ids.Any())
+                return null;
+
+            var leafCount = await applicationDbContext.Resources
+                .CountAsync(r => ids.Contains(r.Id) && r.FeatureId != null);
+
+            return leafCount == ids.Count
+                ? null
+                : "Tenant permissions must be valid permission entries (not feature rows).";
+        }
+
+        private async Task SyncTenantResourcesAsync(int tenantId, List<int>? resourceIds)
+        {
+            var ids = (resourceIds ?? new List<int>()).Distinct().ToList();
+            var existing = await applicationDbContext.TenantResources
+                .Where(tr => tr.TenantId == tenantId)
+                .ToListAsync();
+
+            var toRemove = existing.Where(tr => !ids.Contains(tr.ResourceId)).ToList();
+            if (toRemove.Any())
+                applicationDbContext.TenantResources.RemoveRange(toRemove);
+
+            var existingIds = existing.Select(tr => tr.ResourceId).ToHashSet();
+            foreach (var resourceId in ids.Where(id => !existingIds.Contains(id)))
+            {
+                applicationDbContext.TenantResources.Add(new TenantResource
+                {
+                    TenantId = tenantId,
+                    ResourceId = resourceId
+                });
+            }
+        }
+
+        private async Task PruneTenantRoleResourcesAsync(int tenantId, List<int>? resourceIds)
+        {
+            var allowed = (resourceIds ?? new List<int>()).Distinct().ToHashSet();
+            var roleIds = await applicationDbContext.Roles
+                .Where(r => r.TenantId == tenantId)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            if (!roleIds.Any())
+                return;
+
+            var toRemove = await applicationDbContext.RoleResources
+                .Where(rr => roleIds.Contains(rr.ApplicationRoleId) && !allowed.Contains(rr.ResourceId))
+                .ToListAsync();
+
+            if (toRemove.Any())
+                applicationDbContext.RoleResources.RemoveRange(toRemove);
         }
     }
 }

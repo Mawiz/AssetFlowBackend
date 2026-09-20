@@ -9,5 +9,6 @@ namespace AssetFlow.Services.Contracts
         Task<ResponseDto<ResourceDto>> UpdateAsync(UpdateResourceDto dto);
         Task<ResponseDto<List<ResourceDto>>> GetAllAsync();
         Task<ResponseDto<List<ResourceDto>>> FilterAsync(AssetFlow.Services.Dto.SearchViewDto model);
+        Task<ResponseDto<List<ResourceDto>>> GetForRoleAssignmentAsync(int? tenantId);
     }
 }

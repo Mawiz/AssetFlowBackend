@@ -40,6 +40,14 @@ namespace AssetFlow.API.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
+        [HttpGet("for-role-assignment")]
+        [RequirePermission(Permissions.RoleList)]
+        public async Task<IActionResult> GetForRoleAssignment([FromQuery] int? tenantId)
+        {
+            var result = await _service.GetForRoleAssignmentAsync(tenantId);
+            return StatusCode((int)result.StatusCode, result);
+        }
+
         [HttpPost("Filter")]
         [RequirePermission(Permissions.ResourceList)]
         public async Task<IActionResult> Filter([FromBody] AssetFlow.Services.Dto.SearchViewDto model)

@@ -40,6 +40,7 @@ namespace AssetFlow.Data.Data
         public DbSet<SubscriptionType> SubscriptionTypes { get; set; }
         public DbSet<Language> Languages { get; set; }
         public DbSet<TenantLanguage> TenantLanguages { get; set; }
+        public DbSet<TenantResource> TenantResources { get; set; }
         #endregion Tenant
 
         #region Configurations
@@ -116,6 +117,20 @@ namespace AssetFlow.Data.Data
                 tenant.HasOne(e => e.ModifiedBy)
                       .WithMany()
                       .HasForeignKey(m => m.ModifiedById);
+            });
+
+            modelBuilder.Entity<TenantResource>(tr =>
+            {
+                tr.HasKey(x => x.Id);
+                tr.HasIndex(x => new { x.TenantId, x.ResourceId }).IsUnique();
+                tr.HasOne(x => x.Tenant)
+                    .WithMany(t => t.TenantResources)
+                    .HasForeignKey(x => x.TenantId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                tr.HasOne(x => x.Resource)
+                    .WithMany()
+                    .HasForeignKey(x => x.ResourceId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             Seed.Run(modelBuilder);
