@@ -28,16 +28,24 @@ namespace AssetFlow.Services.Core
             return (true, dtoTenantId, string.Empty);
         }
 
-        public static IQueryable<T> ApplyAdminListTenantFilter<T>(
+        /// <summary>
+        /// Tenant users: only their tenant. System admin: all rows, or filtered by adminFilterTenantId when set.
+        /// </summary>
+        public static IQueryable<T> ApplyTenantScope<T>(
             IQueryable<T> query,
             ITenantProvider tenantProvider,
-            int? filterTenantId) where T : class, ITenancyModel
+            int? adminFilterTenantId = null) where T : class, ITenancyModel
         {
-            if (!IsSystemAdmin(tenantProvider))
-                return query;
+            var contextTenantId = GetContextTenantId(tenantProvider);
+            if (contextTenantId.HasValue)
+            {
+                return query.Where(x => x.TenantId == contextTenantId);
+            }
 
-            if (filterTenantId.HasValue)
-                return query.Where(x => x.TenantId == filterTenantId);
+            if (adminFilterTenantId.HasValue && adminFilterTenantId != 0)
+            {
+                return query.Where(x => x.TenantId == adminFilterTenantId);
+            }
 
             return query;
         }

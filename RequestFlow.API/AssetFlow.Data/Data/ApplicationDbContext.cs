@@ -236,15 +236,17 @@ namespace AssetFlow.Data.Data
             // ensures tenant scoping works per request rather than being fixed at
             // model creation time.
             modelBuilder.ApplyGlobalFilters<ITenancyModel>(e =>
-                !TenantId.HasValue || e.TenantId == TenantId);
+                !TenantId.HasValue || (e.TenantId.HasValue && e.TenantId == TenantId));
         }
 
         private void AppendTenancyValue(EntityEntry entityEntry)
         {
             if (entityEntry.Entity.GetType().GetInterface(typeof(ITenancyModel).Name) != null)
             {
-                if (((ITenancyModel)entityEntry.Entity).TenantId == 0 && _tenantProvider.GetTenantId() != 0)
-                    ((ITenancyModel)entityEntry.Entity).TenantId = _tenantProvider.GetTenantId();
+                var tenancy = (ITenancyModel)entityEntry.Entity;
+                var providerTenantId = _tenantProvider.GetTenantId();
+                if (!tenancy.TenantId.HasValue && providerTenantId.HasValue && providerTenantId != 0)
+                    tenancy.TenantId = providerTenantId;
             }
         }
     }

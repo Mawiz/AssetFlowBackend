@@ -139,7 +139,9 @@ namespace AssetFlow.Services.Core
         public async Task<ResponseDto<List<LocationDto>>> GetAllAsync()
         {
             var response = new ResponseDto<List<LocationDto>>();
-            response.Result = await BuildLocationDtoQuery().ToListAsync();
+            IQueryable<Location> query = BuildLocationQuery();
+            query = TenantScopeHelper.ApplyTenantScope(query, _tenantProvider);
+            response.Result = await query.Select(ProjectToDto()).ToListAsync();
             return response;
         }
 
@@ -152,7 +154,7 @@ namespace AssetFlow.Services.Core
                 .Include(x => x.ParentLocation)
                 .Include(x => x.Tenant);
 
-            query = TenantScopeHelper.ApplyAdminListTenantFilter(query, _tenantProvider, model.TenantId);
+            query = TenantScopeHelper.ApplyTenantScope(query, _tenantProvider, model.TenantId);
 
             query = query.Where(x =>
                 (string.IsNullOrEmpty(model.SearchText) ||
@@ -187,21 +189,13 @@ namespace AssetFlow.Services.Core
                 return response;
             }
 
-            var query = _context.Locations
+            IQueryable<Location> query = _context.Locations
                 .Include(x => x.LocationType)
                 .Include(x => x.ParentLocation)
                 .Include(x => x.Tenant)
                 .Where(x => x.LocationTypeId == locationTypeId && x.IsActive);
 
-            var effectiveTenantId = TenantScopeHelper.GetContextTenantId(_tenantProvider);
-            if (effectiveTenantId.HasValue)
-            {
-                query = query.Where(x => x.TenantId == effectiveTenantId);
-            }
-            else if (tenantId.HasValue)
-            {
-                query = query.Where(x => x.TenantId == tenantId);
-            }
+            query = TenantScopeHelper.ApplyTenantScope(query, _tenantProvider, tenantId);
 
             response.Result = await query
                 .OrderBy(x => x.Name)

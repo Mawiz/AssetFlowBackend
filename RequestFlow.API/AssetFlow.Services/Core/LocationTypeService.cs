@@ -160,7 +160,7 @@ namespace AssetFlow.Services.Core
             var response = new ResponseDto<List<LocationTypeDto>>();
 
             var query = BaseQuery();
-            query = TenantScopeHelper.ApplyAdminListTenantFilter(query, _tenantProvider, tenantId);
+            query = TenantScopeHelper.ApplyTenantScope(query, _tenantProvider, tenantId);
 
             var result = await query
                 .OrderBy(x => x.SortOrder)
@@ -177,7 +177,7 @@ namespace AssetFlow.Services.Core
             var response = new ResponseDto<List<LocationTypeDto>>();
 
             var query = BaseQuery();
-            query = TenantScopeHelper.ApplyAdminListTenantFilter(query, _tenantProvider, model.TenantId);
+            query = TenantScopeHelper.ApplyTenantScope(query, _tenantProvider, model.TenantId);
 
             query = query.Where(x =>
                 (string.IsNullOrEmpty(model.SearchText) ||
