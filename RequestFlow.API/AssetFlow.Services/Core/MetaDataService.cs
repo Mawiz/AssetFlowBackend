@@ -34,10 +34,19 @@ namespace AssetFlow.Services.Core
 
                     case nameof(ApplicationRole):
                         {
+                            var roleQuery = appDbContext.Roles.AsQueryable();
+
+                            if (model.TenantId.HasValue)
+                            {
+                                roleQuery = model.TenantId == 0
+                                    ? roleQuery.Where(r => r.TenantId == null)
+                                    : roleQuery.Where(r => r.TenantId == model.TenantId);
+                            }
+
                             var result = new MetaDataResponseDto
                             {
                                 Key = nameof(ApplicationRole),
-                                Data = appDbContext.Roles
+                                Data = roleQuery
                                        .Where(r => !model.LatestByDate.HasValue ||
                                               r.ModifiedOn > model.LatestByDate.Value)
                                        .OrderByDescending(r => r.ModifiedOn)
@@ -48,7 +57,8 @@ namespace AssetFlow.Services.Core
                                            r.DisplayName,
                                            r.Description,
                                            r.ModifiedOn,
-                                           r.Order
+                                           r.Order,
+                                           r.TenantId
                                        })
                                        .ToList()
                             };
