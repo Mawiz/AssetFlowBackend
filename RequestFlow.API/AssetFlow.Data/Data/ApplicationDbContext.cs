@@ -6,6 +6,7 @@ using AssetFlow.Common.Helper;
 using AssetFlow.Data.Entities;
 using AssetFlow.Data.Entities.ACL;
 using AssetFlow.Data.Entities.Configurations;
+using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
 using AssetFlow.Data.Identity;
@@ -42,6 +43,11 @@ namespace AssetFlow.Data.Data
         public DbSet<TenantLanguage> TenantLanguages { get; set; }
         public DbSet<TenantResource> TenantResources { get; set; }
         #endregion Tenant
+
+        #region Location
+        public DbSet<LocationType> LocationTypes { get; set; }
+        public DbSet<Location> Locations { get; set; }
+        #endregion Location
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -131,6 +137,28 @@ namespace AssetFlow.Data.Data
                     .WithMany()
                     .HasForeignKey(x => x.ResourceId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<LocationType>(lt =>
+            {
+                lt.HasIndex(x => x.Code).IsUnique();
+                lt.HasOne(x => x.ParentLocationType)
+                    .WithMany(x => x.ChildLocationTypes)
+                    .HasForeignKey(x => x.ParentLocationTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Location>(loc =>
+            {
+                loc.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+                loc.HasOne(x => x.LocationType)
+                    .WithMany(x => x.Locations)
+                    .HasForeignKey(x => x.LocationTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                loc.HasOne(x => x.ParentLocation)
+                    .WithMany(x => x.ChildLocations)
+                    .HasForeignKey(x => x.ParentLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             Seed.Run(modelBuilder);

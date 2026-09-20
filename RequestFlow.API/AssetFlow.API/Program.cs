@@ -122,6 +122,8 @@ builder.Services.AddTransient(typeof(ISubscriptionService), typeof(SubscriptionS
 builder.Services.AddTransient(typeof(IApplicationRoleService), typeof(ApplicationRoleService));
 builder.Services.AddTransient(typeof(IResourceService), typeof(ResourceService));
 builder.Services.AddTransient(typeof(ITenantService), typeof(TenantService));
+builder.Services.AddTransient(typeof(ILocationTypeService), typeof(LocationTypeService));
+builder.Services.AddTransient(typeof(ILocationService), typeof(LocationService));
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

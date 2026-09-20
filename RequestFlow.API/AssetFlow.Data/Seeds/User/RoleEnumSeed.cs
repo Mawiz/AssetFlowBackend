@@ -29,6 +29,10 @@ namespace AssetFlow.Data.Seeds.User
 
             const int metaDataFeatureId = 7;
 
+            const int locationTypeFeatureId = 46;
+
+            const int locationFeatureId = 47;
+
             modelBuilder.Entity<Resource>()
 
                 .HasData(new List<Resource>
@@ -48,6 +52,10 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = languageFeatureId, ResourceName = "Language" },
 
                     new Resource { Id = metaDataFeatureId, ResourceName = "MetaData" },
+
+                    new Resource { Id = locationTypeFeatureId, ResourceName = "LocationType" },
+
+                    new Resource { Id = locationFeatureId, ResourceName = "Location" },
 
 
 
@@ -121,7 +129,23 @@ namespace AssetFlow.Data.Seeds.User
 
 
 
-                    new Resource { Id = 37, FeatureId = metaDataFeatureId, ResourceName = Permissions.MetaDataView }
+                    new Resource { Id = 37, FeatureId = metaDataFeatureId, ResourceName = Permissions.MetaDataView },
+
+                    new Resource { Id = 38, FeatureId = locationTypeFeatureId, ResourceName = Permissions.LocationTypeView },
+
+                    new Resource { Id = 39, FeatureId = locationTypeFeatureId, ResourceName = Permissions.LocationTypeCreate },
+
+                    new Resource { Id = 40, FeatureId = locationTypeFeatureId, ResourceName = Permissions.LocationTypeUpdate },
+
+                    new Resource { Id = 41, FeatureId = locationTypeFeatureId, ResourceName = Permissions.LocationTypeDelete },
+
+                    new Resource { Id = 42, FeatureId = locationFeatureId, ResourceName = Permissions.LocationView },
+
+                    new Resource { Id = 43, FeatureId = locationFeatureId, ResourceName = Permissions.LocationCreate },
+
+                    new Resource { Id = 44, FeatureId = locationFeatureId, ResourceName = Permissions.LocationUpdate },
+
+                    new Resource { Id = 45, FeatureId = locationFeatureId, ResourceName = Permissions.LocationDelete }
 
                 });
 

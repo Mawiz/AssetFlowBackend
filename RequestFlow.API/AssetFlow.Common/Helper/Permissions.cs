@@ -38,5 +38,15 @@ namespace AssetFlow.Common.Helper
         public const string LanguageToggle = "Language.Toggle";
 
         public const string MetaDataView = "MetaData.View";
+
+        public const string LocationTypeCreate = "LocationType.Create";
+        public const string LocationTypeUpdate = "LocationType.Update";
+        public const string LocationTypeView = "LocationType.View";
+        public const string LocationTypeDelete = "LocationType.Delete";
+
+        public const string LocationCreate = "Location.Create";
+        public const string LocationUpdate = "Location.Update";
+        public const string LocationView = "Location.View";
+        public const string LocationDelete = "Location.Delete";
     }
 }
