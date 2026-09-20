@@ -182,7 +182,8 @@ namespace AssetFlow.Services.Core
                 //(!model.IsActive.HasValue || x == model.IsActive) &&
                 (!model.StartDate.HasValue || x.CreatedOn >= model.StartDate.Value.Date) &&
                 (!model.EndDate.HasValue || x.CreatedOn >= model.EndDate.Value.Date) &&
-                (!model.TenantId.HasValue || x.TenantId == model.TenantId))
+                (!model.TenantId.HasValue ||
+                 (model.TenantId == 0 ? x.TenantId == null : x.TenantId == model.TenantId)))
                 .Where(r => string.IsNullOrEmpty(model.SearchText) || r.Name.Contains(model.SearchText) || r.DisplayName.Contains(model.SearchText) || r.Description.Contains(model.SearchText))
                 .Select(entity => new RoleDto
                 {

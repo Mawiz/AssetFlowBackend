@@ -58,7 +58,7 @@ namespace AssetFlow.API.Controllers
 
         [HttpGet("tenant")]
         [HttpGet("tenant/{tenantId:int}")]
-        //[RequirePermission(Permissions.RoleList)]
+        [RequirePermission(Permissions.RoleList)]
         public async Task<IActionResult> GetByTenant(int? tenantId = null)
         {
             var result = await _service.GetRolesByTenantAsync(tenantId);
