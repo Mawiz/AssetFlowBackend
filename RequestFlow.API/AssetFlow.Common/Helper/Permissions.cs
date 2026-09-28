@@ -48,5 +48,15 @@ namespace AssetFlow.Common.Helper
         public const string LocationUpdate = "Location.Update";
         public const string LocationView = "Location.View";
         public const string LocationDelete = "Location.Delete";
+
+        public const string AssetCategoryCreate = "AssetCategory.Create";
+        public const string AssetCategoryUpdate = "AssetCategory.Update";
+        public const string AssetCategoryView = "AssetCategory.View";
+        public const string AssetCategoryDelete = "AssetCategory.Delete";
+
+        public const string AssetTypeCreate = "AssetType.Create";
+        public const string AssetTypeUpdate = "AssetType.Update";
+        public const string AssetTypeView = "AssetType.View";
+        public const string AssetTypeDelete = "AssetType.Delete";
     }
 }

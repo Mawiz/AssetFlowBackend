@@ -33,6 +33,10 @@ namespace AssetFlow.Data.Seeds.User
 
             const int locationFeatureId = 47;
 
+            const int assetCategoryFeatureId = 48;
+
+            const int assetTypeFeatureId = 49;
+
             modelBuilder.Entity<Resource>()
 
                 .HasData(new List<Resource>
@@ -56,6 +60,10 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = locationTypeFeatureId, ResourceName = "LocationType" },
 
                     new Resource { Id = locationFeatureId, ResourceName = "Location" },
+
+                    new Resource { Id = assetCategoryFeatureId, ResourceName = "AssetCategory" },
+
+                    new Resource { Id = assetTypeFeatureId, ResourceName = "AssetType" },
 
 
 
@@ -145,7 +153,23 @@ namespace AssetFlow.Data.Seeds.User
 
                     new Resource { Id = 44, FeatureId = locationFeatureId, ResourceName = Permissions.LocationUpdate },
 
-                    new Resource { Id = 45, FeatureId = locationFeatureId, ResourceName = Permissions.LocationDelete }
+                    new Resource { Id = 45, FeatureId = locationFeatureId, ResourceName = Permissions.LocationDelete },
+
+                    new Resource { Id = 50, FeatureId = assetCategoryFeatureId, ResourceName = Permissions.AssetCategoryView },
+
+                    new Resource { Id = 51, FeatureId = assetCategoryFeatureId, ResourceName = Permissions.AssetCategoryCreate },
+
+                    new Resource { Id = 52, FeatureId = assetCategoryFeatureId, ResourceName = Permissions.AssetCategoryUpdate },
+
+                    new Resource { Id = 53, FeatureId = assetCategoryFeatureId, ResourceName = Permissions.AssetCategoryDelete },
+
+                    new Resource { Id = 54, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeView },
+
+                    new Resource { Id = 55, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeCreate },
+
+                    new Resource { Id = 56, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeUpdate },
+
+                    new Resource { Id = 57, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeDelete }
 
                 });
 

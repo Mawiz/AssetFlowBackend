@@ -6,6 +6,7 @@ using AssetFlow.Common.Helper;
 using AssetFlow.Data.Entities;
 using AssetFlow.Data.Entities.ACL;
 using AssetFlow.Data.Entities.Configurations;
+using AssetFlow.Data.Entities.Asset;
 using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
@@ -48,6 +49,11 @@ namespace AssetFlow.Data.Data
         public DbSet<LocationType> LocationTypes { get; set; }
         public DbSet<Location> Locations { get; set; }
         #endregion Location
+
+        #region Asset
+        public DbSet<AssetCategory> AssetCategories { get; set; }
+        public DbSet<AssetType> AssetTypes { get; set; }
+        #endregion Asset
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -156,6 +162,20 @@ namespace AssetFlow.Data.Data
                 loc.HasOne(x => x.ParentLocation)
                     .WithMany(x => x.ChildLocations)
                     .HasForeignKey(x => x.ParentLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<AssetCategory>(ac =>
+            {
+                ac.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+            });
+
+            modelBuilder.Entity<AssetType>(at =>
+            {
+                at.HasIndex(x => new { x.TenantId, x.AssetCategoryId, x.Code }).IsUnique();
+                at.HasOne(x => x.AssetCategory)
+                    .WithMany(x => x.AssetTypes)
+                    .HasForeignKey(x => x.AssetCategoryId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
