@@ -8,5 +8,6 @@ namespace AssetFlow.Services.Contracts
         ResponseDto<ListMetaDataResponseDto> GetMetaDataValues(MetaDataRequestDto model);
         ResponseDto<object> GetAllEnums();
         ResponseDto<List<MetaDataViewDto>> MetaDataKeys();
+        Task<ResponseDto<List<MetaDataByTypeItemDto>>> GetMetaDataByTypeAsync(MetaDataByTypeRequestDto model);
     }
 }

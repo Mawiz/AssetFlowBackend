@@ -37,5 +37,12 @@ namespace AssetFlow.API.Controllers
         {
             return Ok(metaDataService.MetaDataKeys());
         }
+
+        [HttpPost("GetMetaDataByType")]
+        [RequirePermission(Permissions.MetaDataView)]
+        public async Task<IActionResult> GetMetaDataByType([FromBody] MetaDataByTypeRequestDto model)
+        {
+            return Ok(await metaDataService.GetMetaDataByTypeAsync(model));
+        }
     }
 }

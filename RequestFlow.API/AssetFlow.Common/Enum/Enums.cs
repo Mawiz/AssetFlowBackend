@@ -23,5 +23,38 @@
             Ascending = 1,
             Descending = 2
         }
+
+        public enum AssetStatus
+        {
+            Operational = 1,
+            UnderMaintenance = 2,
+            Breakdown = 3,
+            Retired = 4
+        }
+
+        public enum AssetCriticality
+        {
+            Critical = 1,
+            High = 2,
+            Medium = 3,
+            Low = 4
+        }
+
+        public enum ExpectedLifeUnit
+        {
+            Years = 1,
+            Hours = 2,
+            Cycles = 3,
+            Months = 4
+        }
+
+        public enum ComponentCurrentStatus
+        {
+            Active = 1,
+            Inactive = 2,
+            UnderMaintenance = 3,
+            Failed = 4,
+            Removed = 5
+        }
     }
 }

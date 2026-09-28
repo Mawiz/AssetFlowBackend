@@ -126,6 +126,8 @@ builder.Services.AddTransient(typeof(ILocationTypeService), typeof(LocationTypeS
 builder.Services.AddTransient(typeof(ILocationService), typeof(LocationService));
 builder.Services.AddTransient(typeof(IAssetCategoryService), typeof(AssetCategoryService));
 builder.Services.AddTransient(typeof(IAssetTypeService), typeof(AssetTypeService));
+builder.Services.AddTransient(typeof(IAssetService), typeof(AssetService));
+builder.Services.AddTransient(typeof(IAssetComponentService), typeof(AssetComponentService));
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

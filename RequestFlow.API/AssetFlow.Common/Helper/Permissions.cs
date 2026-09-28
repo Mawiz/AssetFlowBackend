@@ -58,5 +58,15 @@ namespace AssetFlow.Common.Helper
         public const string AssetTypeUpdate = "AssetType.Update";
         public const string AssetTypeView = "AssetType.View";
         public const string AssetTypeDelete = "AssetType.Delete";
+
+        public const string AssetCreate = "Asset.Create";
+        public const string AssetUpdate = "Asset.Update";
+        public const string AssetView = "Asset.View";
+        public const string AssetDelete = "Asset.Delete";
+
+        public const string AssetComponentCreate = "AssetComponent.Create";
+        public const string AssetComponentUpdate = "AssetComponent.Update";
+        public const string AssetComponentView = "AssetComponent.View";
+        public const string AssetComponentDelete = "AssetComponent.Delete";
     }
 }

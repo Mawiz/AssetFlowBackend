@@ -37,6 +37,10 @@ namespace AssetFlow.Data.Seeds.User
 
             const int assetTypeFeatureId = 49;
 
+            const int assetFeatureId = 58;
+
+            const int assetComponentFeatureId = 59;
+
             modelBuilder.Entity<Resource>()
 
                 .HasData(new List<Resource>
@@ -65,7 +69,9 @@ namespace AssetFlow.Data.Seeds.User
 
                     new Resource { Id = assetTypeFeatureId, ResourceName = "AssetType" },
 
+                    new Resource { Id = assetFeatureId, ResourceName = "Asset" },
 
+                    new Resource { Id = assetComponentFeatureId, ResourceName = "AssetComponent" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -169,7 +175,23 @@ namespace AssetFlow.Data.Seeds.User
 
                     new Resource { Id = 56, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeUpdate },
 
-                    new Resource { Id = 57, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeDelete }
+                    new Resource { Id = 57, FeatureId = assetTypeFeatureId, ResourceName = Permissions.AssetTypeDelete },
+
+                    new Resource { Id = 60, FeatureId = assetFeatureId, ResourceName = Permissions.AssetView },
+
+                    new Resource { Id = 61, FeatureId = assetFeatureId, ResourceName = Permissions.AssetCreate },
+
+                    new Resource { Id = 62, FeatureId = assetFeatureId, ResourceName = Permissions.AssetUpdate },
+
+                    new Resource { Id = 63, FeatureId = assetFeatureId, ResourceName = Permissions.AssetDelete },
+
+                    new Resource { Id = 64, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentView },
+
+                    new Resource { Id = 65, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentCreate },
+
+                    new Resource { Id = 66, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentUpdate },
+
+                    new Resource { Id = 67, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentDelete }
 
                 });
 

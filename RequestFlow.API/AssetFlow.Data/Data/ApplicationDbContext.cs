@@ -53,6 +53,8 @@ namespace AssetFlow.Data.Data
         #region Asset
         public DbSet<AssetCategory> AssetCategories { get; set; }
         public DbSet<AssetType> AssetTypes { get; set; }
+        public DbSet<Asset> Assets { get; set; }
+        public DbSet<AssetComponent> AssetComponents { get; set; }
         #endregion Asset
 
         #region Configurations
@@ -177,6 +179,21 @@ namespace AssetFlow.Data.Data
                     .WithMany(x => x.AssetTypes)
                     .HasForeignKey(x => x.AssetCategoryId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Asset>(a =>
+            {
+                a.HasIndex(x => new { x.TenantId, x.AssetCode }).IsUnique();
+                a.HasOne(x => x.AssetCategory).WithMany().HasForeignKey(x => x.AssetCategoryId).OnDelete(DeleteBehavior.Restrict);
+                a.HasOne(x => x.AssetType).WithMany().HasForeignKey(x => x.AssetTypeId).OnDelete(DeleteBehavior.Restrict);
+                a.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
+                a.HasOne(x => x.ResponsibleUser).WithMany().HasForeignKey(x => x.ResponsibleUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<AssetComponent>(c =>
+            {
+                c.HasIndex(x => new { x.TenantId, x.ComponentCode }).IsUnique();
+                c.HasOne(x => x.Asset).WithMany(x => x.Components).HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
             });
 
             Seed.Run(modelBuilder);
