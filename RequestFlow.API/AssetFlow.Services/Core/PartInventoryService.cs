@@ -76,70 +76,65 @@ namespace AssetFlow.Services.Core
             var locError = await ValidateLocationAsync(dto.LocationId, tenantResult.TenantId);
             if (locError != null) { response.AddError(locError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
-            if (dto.Quantity <= 0) { response.AddError("Quantity must be greater than zero."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
-
-            PartInventory inventory;
-            if (part.IsSerialized)
+            if (string.IsNullOrWhiteSpace(dto.SerialNumber))
             {
-                if (dto.Quantity != 1) { response.AddError("Serialized parts must be received one at a time."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
-                if (string.IsNullOrWhiteSpace(dto.SerialNumber)) { response.AddError("Serial number is required."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
-                var serial = dto.SerialNumber.Trim();
-                if (await _context.PartSerialNumbers.AnyAsync(x => x.TenantId == tenantResult.TenantId && x.SerialNumber == serial))
-                { response.AddError("Serial number already exists."); response.StatusCode = HttpStatusCode.Conflict; return response; }
-
-                var serialEntity = new PartSerialNumber
-                {
-                    TenantId = tenantResult.TenantId,
-                    PartId = part.Id,
-                    SerialNumber = serial,
-                    Status = (int)Enums.PartInventoryStatus.InStock,
-                    ReceivedDate = dto.ReceivedDate ?? DateTime.UtcNow,
-                    LocationId = dto.LocationId,
-                    WarrantyStartDate = dto.WarrantyStartDate,
-                    WarrantyEndDate = dto.WarrantyEndDate,
-                    IsActive = true
-                };
-                _context.PartSerialNumbers.Add(serialEntity);
-                await _context.SaveChangesAsync();
-
-                inventory = new PartInventory
-                {
-                    TenantId = tenantResult.TenantId,
-                    PartId = part.Id,
-                    LocationId = dto.LocationId,
-                    PartSerialNumberId = serialEntity.Id,
-                    QuantityAvailable = 1,
-                    QuantityReserved = 0,
-                    Status = (int)Enums.PartInventoryStatus.InStock,
-                    IsActive = true
-                };
-                _context.PartInventories.Add(inventory);
+                response.AddError("Serial number is required.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
             }
-            else
+
+            if (dto.Quantity != 1)
             {
-                inventory = await _context.PartInventories.FirstOrDefaultAsync(x =>
-                    x.PartId == part.Id && x.LocationId == dto.LocationId && x.PartSerialNumberId == null);
-                if (inventory == null)
-                {
-                    inventory = new PartInventory
-                    {
-                        TenantId = tenantResult.TenantId,
-                        PartId = part.Id,
-                        LocationId = dto.LocationId,
-                        QuantityAvailable = dto.Quantity,
-                        QuantityReserved = 0,
-                        Status = (int)Enums.PartInventoryStatus.InStock,
-                        IsActive = true
-                    };
-                    _context.PartInventories.Add(inventory);
-                }
-                else
-                    inventory.QuantityAvailable += dto.Quantity;
+                response.AddError("Each receipt is one physical unit (quantity must be 1).");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
             }
+
+            if (!part.IsSerialized)
+            {
+                part.IsSerialized = true;
+                _context.Parts.Update(part);
+            }
+
+            var serial = dto.SerialNumber.Trim();
+            if (await PartSerialNumberGenerator.SerialExistsAsync(_context, tenantResult.TenantId, serial))
+            {
+                response.AddError("Serial number already exists.");
+                response.StatusCode = HttpStatusCode.Conflict;
+                return response;
+            }
+
+            var serialEntity = new PartSerialNumber
+            {
+                TenantId = tenantResult.TenantId,
+                PartId = part.Id,
+                SerialNumber = serial,
+                Status = (int)Enums.PartInventoryStatus.InStock,
+                ReceivedDate = dto.ReceivedDate ?? DateTime.UtcNow,
+                LocationId = dto.LocationId,
+                WarrantyStartDate = dto.WarrantyStartDate,
+                WarrantyEndDate = dto.WarrantyEndDate,
+                IsActive = true
+            };
+            _context.PartSerialNumbers.Add(serialEntity);
+            await _context.SaveChangesAsync();
+
+            var inventory = new PartInventory
+            {
+                TenantId = tenantResult.TenantId,
+                PartId = part.Id,
+                LocationId = dto.LocationId,
+                PartSerialNumberId = serialEntity.Id,
+                QuantityAvailable = 1,
+                QuantityReserved = 0,
+                Status = (int)Enums.PartInventoryStatus.InStock,
+                IsActive = true
+            };
+            _context.PartInventories.Add(inventory);
 
             await _context.SaveChangesAsync();
             await RecordTransactionAsync(part.Id, inventory.PartSerialNumberId, (int)Enums.PartTransactionType.Receipt,
-                dto.Quantity, null, dto.LocationId, dto.Remarks, tenantResult.TenantId);
+                1, null, dto.LocationId, dto.Remarks, tenantResult.TenantId);
 
             response.Result = await MapToDtoAsync(inventory.Id);
             return response;

@@ -22,6 +22,22 @@ namespace AssetFlow.API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpGet("Next")]
+        [RequirePermission(Permissions.PartInventoryView)]
+        public async Task<IActionResult> GetNext([FromQuery] int partId, [FromQuery] int? tenantId)
+        {
+            var response = await _service.GetNextSerialAsync(partId, tenantId);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpGet("Exists")]
+        [RequirePermission(Permissions.PartInventoryView)]
+        public async Task<IActionResult> Exists([FromQuery] string serial, [FromQuery] int? tenantId)
+        {
+            var response = await _service.SerialExistsAsync(serial, tenantId);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpGet("{id}")]
         [RequirePermission(Permissions.PartInventoryView)]
         public async Task<IActionResult> GetById(int id)

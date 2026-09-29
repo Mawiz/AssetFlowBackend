@@ -98,6 +98,38 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
+        public async Task<ResponseDto<NextPartSerialDto>> GetNextSerialAsync(int partId, int? tenantId)
+        {
+            var response = new ResponseDto<NextPartSerialDto>();
+            var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, tenantId);
+            if (!tenantResult.Ok) { response.AddError(tenantResult.Error); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+
+            var part = await _context.Parts.FindAsync(partId);
+            if (part == null) { response.AddError("Part not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            if (part.TenantId != tenantResult.TenantId) { response.AddError("Part tenant mismatch."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+
+            var next = await PartSerialNumberGenerator.GetNextSerialAsync(_context, partId, tenantResult.TenantId);
+            response.Result = new NextPartSerialDto { SerialNumber = next };
+            return response;
+        }
+
+        public async Task<ResponseDto<bool>> SerialExistsAsync(string serial, int? tenantId)
+        {
+            var response = new ResponseDto<bool>();
+            var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, tenantId);
+            if (!tenantResult.Ok) { response.AddError(tenantResult.Error); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+
+            if (string.IsNullOrWhiteSpace(serial))
+            {
+                response.AddError("Serial number is required.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            response.Result = await PartSerialNumberGenerator.SerialExistsAsync(_context, tenantResult.TenantId, serial);
+            return response;
+        }
+
         private async Task<string?> ValidateAsync(CreatePartSerialNumberDto dto, int? tenantId, int? id)
         {
             if (dto.WarrantyStartDate.HasValue && dto.WarrantyEndDate.HasValue && dto.WarrantyEndDate < dto.WarrantyStartDate)

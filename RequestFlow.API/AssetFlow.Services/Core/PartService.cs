@@ -161,7 +161,7 @@ namespace AssetFlow.Services.Core
             entity.ExpectedLifeUnit = dto.ExpectedLifeUnit;
             entity.MinStockLevel = dto.MinStockLevel;
             entity.MaxStockLevel = dto.MaxStockLevel;
-            entity.IsSerialized = dto.IsSerialized;
+            entity.IsSerialized = true;
             entity.IsActive = dto.IsActive;
             return entity;
         }

@@ -33,4 +33,9 @@ namespace AssetFlow.Services.Dto.SparePart
     {
         public int? PartId { get; set; }
     }
+
+    public class NextPartSerialDto
+    {
+        public string SerialNumber { get; set; }
+    }
 }
