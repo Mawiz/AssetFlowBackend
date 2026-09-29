@@ -7,6 +7,7 @@ namespace AssetFlow.Services.Contracts
     {
         Task<ResponseDto<List<PartInventoryDto>>> FilterAsync(PartInventoryFilterDto model);
         Task<ResponseDto<PartInventoryDto>> ReceiptAsync(PartReceiptDto dto);
+        Task<ResponseDto<PartBatchReceiptResultDto>> BatchReceiptAsync(PartBatchReceiptDto dto);
         Task<ResponseDto<PartInventoryDto>> TransferAsync(PartTransferDto dto);
         Task<ResponseDto<PartInventoryDto>> AdjustAsync(PartAdjustmentDto dto);
         Task<ResponseDto<bool>> DeleteAsync(int id);

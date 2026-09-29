@@ -88,5 +88,10 @@ namespace AssetFlow.Common.Helper
         public const string PartTransactionUpdate = "PartTransaction.Update";
         public const string PartTransactionView = "PartTransaction.View";
         public const string PartTransactionDelete = "PartTransaction.Delete";
+
+        public const string SupplierCreate = "Supplier.Create";
+        public const string SupplierUpdate = "Supplier.Update";
+        public const string SupplierView = "Supplier.View";
+        public const string SupplierDelete = "Supplier.Delete";
     }
 }

@@ -98,7 +98,7 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
-        public async Task<ResponseDto<NextPartSerialDto>> GetNextSerialAsync(int partId, int? tenantId)
+        public async Task<ResponseDto<NextPartSerialDto>> GetNextSerialAsync(int partId, int? tenantId, int count = 1)
         {
             var response = new ResponseDto<NextPartSerialDto>();
             var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, tenantId);
@@ -108,8 +108,15 @@ namespace AssetFlow.Services.Core
             if (part == null) { response.AddError("Part not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
             if (part.TenantId != tenantResult.TenantId) { response.AddError("Part tenant mismatch."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
-            var next = await PartSerialNumberGenerator.GetNextSerialAsync(_context, partId, tenantResult.TenantId);
-            response.Result = new NextPartSerialDto { SerialNumber = next };
+            if (count < 1) count = 1;
+            if (count > 500) { response.AddError("Count cannot exceed 500."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+
+            var list = await PartSerialNumberGenerator.GetNextSerialsAsync(_context, partId, tenantResult.TenantId, count);
+            response.Result = new NextPartSerialDto
+            {
+                SerialNumber = list.FirstOrDefault(),
+                SerialNumbers = list
+            };
             return response;
         }
 
@@ -143,7 +150,7 @@ namespace AssetFlow.Services.Core
         }
 
         private IQueryable<PartSerialNumber> BuildQuery() =>
-            _context.PartSerialNumbers.Include(x => x.Part).Include(x => x.Location).Include(x => x.Tenant);
+            _context.PartSerialNumbers.Include(x => x.Part).Include(x => x.Location).Include(x => x.Tenant).Include(x => x.Supplier);
 
         private static System.Linq.Expressions.Expression<Func<PartSerialNumber, PartSerialNumberDto>> ProjectToDto() =>
             x => new PartSerialNumberDto
@@ -161,7 +168,10 @@ namespace AssetFlow.Services.Core
                 LocationName = x.Location != null ? x.Location.Name : null,
                 WarrantyStartDate = x.WarrantyStartDate,
                 WarrantyEndDate = x.WarrantyEndDate,
-                IsActive = x.IsActive
+                IsActive = x.IsActive,
+                SupplierId = x.SupplierId,
+                SupplierName = x.Supplier != null ? x.Supplier.Name : null,
+                SupplierSerialReference = x.SupplierSerialReference
             };
 
         private async Task<PartSerialNumberDto?> MapToDtoAsync(int id) =>

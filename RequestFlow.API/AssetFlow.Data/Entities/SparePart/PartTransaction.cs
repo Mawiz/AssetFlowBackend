@@ -33,5 +33,8 @@ namespace AssetFlow.Data.Entities.SparePart
 
         [StringLength(1000)]
         public string Remarks { get; set; }
+
+        public int? SupplierId { get; set; }
+        public virtual Supplier Supplier { get; set; }
     }
 }

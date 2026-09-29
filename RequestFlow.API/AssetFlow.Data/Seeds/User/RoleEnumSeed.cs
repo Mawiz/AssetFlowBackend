@@ -49,6 +49,8 @@ namespace AssetFlow.Data.Seeds.User
 
             const int partTransactionFeatureId = 71;
 
+            const int supplierFeatureId = 92;
+
             modelBuilder.Entity<Resource>()
 
                 .HasData(new List<Resource>
@@ -88,6 +90,8 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = partInventoryFeatureId, ResourceName = "PartInventory" },
 
                     new Resource { Id = partTransactionFeatureId, ResourceName = "PartTransaction" },
+
+                    new Resource { Id = supplierFeatureId, ResourceName = "Supplier" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -239,7 +243,15 @@ namespace AssetFlow.Data.Seeds.User
 
                     new Resource { Id = 86, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionUpdate },
 
-                    new Resource { Id = 87, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionDelete }
+                    new Resource { Id = 87, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionDelete },
+
+                    new Resource { Id = 93, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierView },
+
+                    new Resource { Id = 94, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierCreate },
+
+                    new Resource { Id = 95, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierUpdate },
+
+                    new Resource { Id = 96, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierDelete }
 
                 });
 

@@ -24,5 +24,11 @@ namespace AssetFlow.Data.Entities.SparePart
 
         public DateTime? WarrantyStartDate { get; set; }
         public DateTime? WarrantyEndDate { get; set; }
+
+        public int? SupplierId { get; set; }
+        public virtual Supplier Supplier { get; set; }
+
+        [StringLength(200)]
+        public string SupplierSerialReference { get; set; }
     }
 }

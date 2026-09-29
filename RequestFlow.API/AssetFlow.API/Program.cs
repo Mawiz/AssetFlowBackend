@@ -129,6 +129,7 @@ builder.Services.AddTransient(typeof(IAssetTypeService), typeof(AssetTypeService
 builder.Services.AddTransient(typeof(IAssetService), typeof(AssetService));
 builder.Services.AddTransient(typeof(IAssetComponentService), typeof(AssetComponentService));
 builder.Services.AddTransient(typeof(IPartCategoryService), typeof(PartCategoryService));
+builder.Services.AddTransient(typeof(ISupplierService), typeof(SupplierService));
 builder.Services.AddTransient(typeof(IPartService), typeof(PartService));
 builder.Services.AddTransient(typeof(IPartInventoryService), typeof(PartInventoryService));
 builder.Services.AddTransient(typeof(IPartSerialNumberService), typeof(PartSerialNumberService));

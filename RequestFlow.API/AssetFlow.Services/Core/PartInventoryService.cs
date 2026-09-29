@@ -65,9 +65,45 @@ namespace AssetFlow.Services.Core
 
         public async Task<ResponseDto<PartInventoryDto>> ReceiptAsync(PartReceiptDto dto)
         {
-            var response = new ResponseDto<PartInventoryDto>();
+            var batch = new PartBatchReceiptDto
+            {
+                TenantId = dto.TenantId,
+                PartId = dto.PartId,
+                LocationId = dto.LocationId,
+                SupplierId = dto.SupplierId,
+                Quantity = 1,
+                ReceiptMode = 0,
+                ReceivedDate = dto.ReceivedDate,
+                WarrantyStartDate = dto.WarrantyStartDate,
+                WarrantyEndDate = dto.WarrantyEndDate,
+                Remarks = dto.Remarks
+            };
+
+            var batchResponse = await BatchReceiptAsync(batch);
+            var response = new ResponseDto<PartInventoryDto> { StatusCode = batchResponse.StatusCode };
+            if (!batchResponse.Success)
+            {
+                foreach (var err in batchResponse.Errors)
+                    response.AddError(err);
+                return response;
+            }
+            if (batchResponse.Result?.Items?.Count > 0)
+                response.Result = batchResponse.Result.Items[0];
+            return response;
+        }
+
+        public async Task<ResponseDto<PartBatchReceiptResultDto>> BatchReceiptAsync(PartBatchReceiptDto dto)
+        {
+            var response = new ResponseDto<PartBatchReceiptResultDto>();
             var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, dto.TenantId);
             if (!tenantResult.Ok) { response.AddError(tenantResult.Error); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+
+            if (dto.Quantity < 1 || dto.Quantity > 500)
+            {
+                response.AddError("Quantity must be between 1 and 500.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
 
             var part = await _context.Parts.FindAsync(dto.PartId);
             if (part == null) { response.AddError("Part not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
@@ -76,16 +112,34 @@ namespace AssetFlow.Services.Core
             var locError = await ValidateLocationAsync(dto.LocationId, tenantResult.TenantId);
             if (locError != null) { response.AddError(locError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
-            if (string.IsNullOrWhiteSpace(dto.SerialNumber))
-            {
-                response.AddError("Serial number is required.");
-                response.StatusCode = HttpStatusCode.BadRequest;
-                return response;
-            }
+            var supError = await ValidateSupplierAsync(dto.SupplierId, tenantResult.TenantId);
+            if (supError != null) { response.AddError(supError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
-            if (dto.Quantity != 1)
+            var supplierRefs = dto.SupplierSerialReferences?
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .ToList() ?? new List<string>();
+
+            const int scanMode = 1;
+            if (dto.ReceiptMode == scanMode)
             {
-                response.AddError("Each receipt is one physical unit (quantity must be 1).");
+                if (supplierRefs.Count != dto.Quantity)
+                {
+                    response.AddError("Scan mode requires one supplier QR/barcode per unit (count must match quantity).");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                if (supplierRefs.Distinct(StringComparer.OrdinalIgnoreCase).Count() != supplierRefs.Count)
+                {
+                    response.AddError("Duplicate supplier serial references in this receipt.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+            }
+            else if (supplierRefs.Count > 0)
+            {
+                response.AddError("Supplier serial references are only used in scan mode.");
                 response.StatusCode = HttpStatusCode.BadRequest;
                 return response;
             }
@@ -96,48 +150,77 @@ namespace AssetFlow.Services.Core
                 _context.Parts.Update(part);
             }
 
-            var serial = dto.SerialNumber.Trim();
-            if (await PartSerialNumberGenerator.SerialExistsAsync(_context, tenantResult.TenantId, serial))
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
             {
-                response.AddError("Serial number already exists.");
-                response.StatusCode = HttpStatusCode.Conflict;
+                var internalSerials = await PartSerialNumberGenerator.GetNextSerialsAsync(
+                    _context, part.Id, tenantResult.TenantId, dto.Quantity);
+
+                var result = new PartBatchReceiptResultDto();
+                var received = dto.ReceivedDate ?? DateTime.UtcNow;
+
+                for (var i = 0; i < dto.Quantity; i++)
+                {
+                    var internalSerial = internalSerials[i];
+                    if (await PartSerialNumberGenerator.SerialExistsAsync(_context, tenantResult.TenantId, internalSerial))
+                    {
+                        await tx.RollbackAsync();
+                        response.AddError($"Internal serial conflict: {internalSerial}. Retry the receipt.");
+                        response.StatusCode = HttpStatusCode.Conflict;
+                        return response;
+                    }
+
+                    string? supplierRef = dto.ReceiptMode == scanMode ? supplierRefs[i] : null;
+
+                    var serialEntity = new PartSerialNumber
+                    {
+                        TenantId = tenantResult.TenantId,
+                        PartId = part.Id,
+                        SerialNumber = internalSerial,
+                        SupplierId = dto.SupplierId,
+                        SupplierSerialReference = supplierRef,
+                        Status = (int)Enums.PartInventoryStatus.InStock,
+                        ReceivedDate = received,
+                        LocationId = dto.LocationId,
+                        WarrantyStartDate = dto.WarrantyStartDate,
+                        WarrantyEndDate = dto.WarrantyEndDate,
+                        IsActive = true
+                    };
+                    _context.PartSerialNumbers.Add(serialEntity);
+                    await _context.SaveChangesAsync();
+
+                    var inventory = new PartInventory
+                    {
+                        TenantId = tenantResult.TenantId,
+                        PartId = part.Id,
+                        LocationId = dto.LocationId,
+                        PartSerialNumberId = serialEntity.Id,
+                        QuantityAvailable = 1,
+                        QuantityReserved = 0,
+                        Status = (int)Enums.PartInventoryStatus.InStock,
+                        IsActive = true
+                    };
+                    _context.PartInventories.Add(inventory);
+                    await _context.SaveChangesAsync();
+
+                    await RecordTransactionAsync(part.Id, serialEntity.Id, (int)Enums.PartTransactionType.Receipt,
+                        1, null, dto.LocationId, dto.Remarks, tenantResult.TenantId, dto.SupplierId);
+
+                    var mapped = await MapToDtoAsync(inventory.Id);
+                    if (mapped != null)
+                        result.Items.Add(mapped);
+                    result.GeneratedSerialNumbers.Add(internalSerial);
+                }
+
+                await tx.CommitAsync();
+                response.Result = result;
                 return response;
             }
-
-            var serialEntity = new PartSerialNumber
+            catch
             {
-                TenantId = tenantResult.TenantId,
-                PartId = part.Id,
-                SerialNumber = serial,
-                Status = (int)Enums.PartInventoryStatus.InStock,
-                ReceivedDate = dto.ReceivedDate ?? DateTime.UtcNow,
-                LocationId = dto.LocationId,
-                WarrantyStartDate = dto.WarrantyStartDate,
-                WarrantyEndDate = dto.WarrantyEndDate,
-                IsActive = true
-            };
-            _context.PartSerialNumbers.Add(serialEntity);
-            await _context.SaveChangesAsync();
-
-            var inventory = new PartInventory
-            {
-                TenantId = tenantResult.TenantId,
-                PartId = part.Id,
-                LocationId = dto.LocationId,
-                PartSerialNumberId = serialEntity.Id,
-                QuantityAvailable = 1,
-                QuantityReserved = 0,
-                Status = (int)Enums.PartInventoryStatus.InStock,
-                IsActive = true
-            };
-            _context.PartInventories.Add(inventory);
-
-            await _context.SaveChangesAsync();
-            await RecordTransactionAsync(part.Id, inventory.PartSerialNumberId, (int)Enums.PartTransactionType.Receipt,
-                1, null, dto.LocationId, dto.Remarks, tenantResult.TenantId);
-
-            response.Result = await MapToDtoAsync(inventory.Id);
-            return response;
+                await tx.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<ResponseDto<PartInventoryDto>> TransferAsync(PartTransferDto dto)
@@ -221,7 +304,7 @@ namespace AssetFlow.Services.Core
         }
 
         private async Task RecordTransactionAsync(int partId, int? serialId, int type, decimal qty,
-            int? fromLoc, int? toLoc, string remarks, int? tenantId)
+            int? fromLoc, int? toLoc, string remarks, int? tenantId, int? supplierId = null)
         {
             int? userId = UserHelper.GetCurrentUserId(_httpContextAccessor);
             _context.PartTransactions.Add(new PartTransaction
@@ -236,9 +319,18 @@ namespace AssetFlow.Services.Core
                 TransactionDate = DateTime.UtcNow,
                 PerformedByUserId = userId,
                 Remarks = remarks,
+                SupplierId = supplierId,
                 IsActive = true
             });
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<string?> ValidateSupplierAsync(int supplierId, int? tenantId)
+        {
+            var supplier = await _context.Suppliers.FindAsync(supplierId);
+            if (supplier == null || !supplier.IsActive) return "Supplier not found or inactive.";
+            if (supplier.TenantId != tenantId) return "Supplier must belong to the same tenant.";
+            return null;
         }
 
         private async Task<string?> ValidateLocationAsync(int locationId, int? tenantId)
@@ -253,7 +345,7 @@ namespace AssetFlow.Services.Core
             _context.PartInventories
                 .Include(x => x.Part)
                 .Include(x => x.Location)
-                .Include(x => x.PartSerialNumber)
+                .Include(x => x.PartSerialNumber).ThenInclude(s => s.Supplier)
                 .Include(x => x.Tenant);
 
         private static System.Linq.Expressions.Expression<Func<PartInventory, PartInventoryDto>> ProjectToDto() =>
@@ -269,6 +361,8 @@ namespace AssetFlow.Services.Core
                 LocationName = x.Location.Name,
                 PartSerialNumberId = x.PartSerialNumberId,
                 SerialNumber = x.PartSerialNumber != null ? x.PartSerialNumber.SerialNumber : null,
+                SupplierSerialReference = x.PartSerialNumber != null ? x.PartSerialNumber.SupplierSerialReference : null,
+                SupplierName = x.PartSerialNumber != null && x.PartSerialNumber.Supplier != null ? x.PartSerialNumber.Supplier.Name : null,
                 QuantityAvailable = x.QuantityAvailable,
                 QuantityReserved = x.QuantityReserved,
                 Status = x.Status,

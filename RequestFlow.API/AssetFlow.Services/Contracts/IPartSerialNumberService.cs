@@ -9,7 +9,7 @@ namespace AssetFlow.Services.Contracts
         Task<ResponseDto<PartSerialNumberDto>> GetByIdAsync(int id);
         Task<ResponseDto<List<PartSerialNumberDto>>> FilterAsync(PartSerialNumberFilterDto model);
         Task<ResponseDto<bool>> DeleteAsync(int id);
-        Task<ResponseDto<NextPartSerialDto>> GetNextSerialAsync(int partId, int? tenantId);
+        Task<ResponseDto<NextPartSerialDto>> GetNextSerialAsync(int partId, int? tenantId, int count = 1);
         Task<ResponseDto<bool>> SerialExistsAsync(string serial, int? tenantId);
     }
 }

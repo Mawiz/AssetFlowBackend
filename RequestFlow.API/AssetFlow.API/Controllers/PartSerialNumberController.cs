@@ -24,9 +24,9 @@ namespace AssetFlow.API.Controllers
 
         [HttpGet("Next")]
         [RequirePermission(Permissions.PartInventoryView)]
-        public async Task<IActionResult> GetNext([FromQuery] int partId, [FromQuery] int? tenantId)
+        public async Task<IActionResult> GetNext([FromQuery] int partId, [FromQuery] int? tenantId, [FromQuery] int count = 1)
         {
-            var response = await _service.GetNextSerialAsync(partId, tenantId);
+            var response = await _service.GetNextSerialAsync(partId, tenantId, count);
             return StatusCode((int)response.StatusCode, response);
         }
 

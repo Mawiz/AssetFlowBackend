@@ -9,6 +9,9 @@ namespace AssetFlow.Services.Dto.SparePart
         public string PartName { get; set; }
         public string LocationName { get; set; }
         public string TenantName { get; set; }
+        public int? SupplierId { get; set; }
+        public string SupplierName { get; set; }
+        public string SupplierSerialReference { get; set; }
     }
 
     public class CreatePartSerialNumberDto
@@ -37,5 +40,6 @@ namespace AssetFlow.Services.Dto.SparePart
     public class NextPartSerialDto
     {
         public string SerialNumber { get; set; }
+        public List<string> SerialNumbers { get; set; } = new();
     }
 }

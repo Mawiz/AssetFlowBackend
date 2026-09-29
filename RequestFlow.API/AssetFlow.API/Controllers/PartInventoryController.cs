@@ -26,6 +26,14 @@ namespace AssetFlow.API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpPost("BatchReceipt")]
+        [RequirePermission(Permissions.PartInventoryCreate)]
+        public async Task<IActionResult> BatchReceipt([FromBody] PartBatchReceiptDto dto)
+        {
+            var response = await _service.BatchReceiptAsync(dto);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpPost("Transfer")]
         [RequirePermission(Permissions.PartInventoryUpdate)]
         public async Task<IActionResult> Transfer([FromBody] PartTransferDto dto)
