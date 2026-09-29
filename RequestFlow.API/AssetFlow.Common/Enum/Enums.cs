@@ -56,5 +56,23 @@
             Failed = 4,
             Removed = 5
         }
+
+        public enum PartInventoryStatus
+        {
+            InStock = 1,
+            Issued = 2,
+            Reserved = 3,
+            Removed = 4,
+            Scrapped = 5
+        }
+
+        public enum PartTransactionType
+        {
+            Receipt = 1,
+            Adjustment = 2,
+            Transfer = 3,
+            Issue = 4,
+            Return = 5
+        }
     }
 }

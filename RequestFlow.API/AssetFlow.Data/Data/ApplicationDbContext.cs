@@ -7,6 +7,7 @@ using AssetFlow.Data.Entities;
 using AssetFlow.Data.Entities.ACL;
 using AssetFlow.Data.Entities.Configurations;
 using AssetFlow.Data.Entities.Asset;
+using AssetFlow.Data.Entities.SparePart;
 using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
@@ -56,6 +57,14 @@ namespace AssetFlow.Data.Data
         public DbSet<Asset> Assets { get; set; }
         public DbSet<AssetComponent> AssetComponents { get; set; }
         #endregion Asset
+
+        #region SparePart
+        public DbSet<PartCategory> PartCategories { get; set; }
+        public DbSet<Part> Parts { get; set; }
+        public DbSet<PartSerialNumber> PartSerialNumbers { get; set; }
+        public DbSet<PartInventory> PartInventories { get; set; }
+        public DbSet<PartTransaction> PartTransactions { get; set; }
+        #endregion SparePart
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -194,6 +203,41 @@ namespace AssetFlow.Data.Data
             {
                 c.HasIndex(x => new { x.TenantId, x.ComponentCode }).IsUnique();
                 c.HasOne(x => x.Asset).WithMany(x => x.Components).HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartCategory>(pc =>
+            {
+                pc.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+            });
+
+            modelBuilder.Entity<Part>(p =>
+            {
+                p.HasIndex(x => new { x.TenantId, x.PartNumber }).IsUnique();
+                p.HasOne(x => x.PartCategory).WithMany(x => x.Parts).HasForeignKey(x => x.PartCategoryId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartSerialNumber>(psn =>
+            {
+                psn.HasIndex(x => new { x.TenantId, x.SerialNumber }).IsUnique();
+                psn.HasOne(x => x.Part).WithMany(x => x.SerialNumbers).HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
+                psn.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartInventory>(pi =>
+            {
+                pi.HasIndex(x => new { x.TenantId, x.PartId, x.LocationId, x.PartSerialNumberId }).IsUnique();
+                pi.HasOne(x => x.Part).WithMany(x => x.InventoryItems).HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
+                pi.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
+                pi.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartTransaction>(pt =>
+            {
+                pt.HasOne(x => x.Part).WithMany().HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.FromLocation).WithMany().HasForeignKey(x => x.FromLocationId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.ToLocation).WithMany().HasForeignKey(x => x.ToLocationId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.PerformedByUser).WithMany().HasForeignKey(x => x.PerformedByUserId).OnDelete(DeleteBehavior.Restrict);
             });
 
             Seed.Run(modelBuilder);

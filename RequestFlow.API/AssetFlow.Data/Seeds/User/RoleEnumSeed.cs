@@ -41,6 +41,14 @@ namespace AssetFlow.Data.Seeds.User
 
             const int assetComponentFeatureId = 59;
 
+            const int partCategoryFeatureId = 68;
+
+            const int partFeatureId = 69;
+
+            const int partInventoryFeatureId = 70;
+
+            const int partTransactionFeatureId = 71;
+
             modelBuilder.Entity<Resource>()
 
                 .HasData(new List<Resource>
@@ -72,6 +80,14 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = assetFeatureId, ResourceName = "Asset" },
 
                     new Resource { Id = assetComponentFeatureId, ResourceName = "AssetComponent" },
+
+                    new Resource { Id = partCategoryFeatureId, ResourceName = "PartCategory" },
+
+                    new Resource { Id = partFeatureId, ResourceName = "Part" },
+
+                    new Resource { Id = partInventoryFeatureId, ResourceName = "PartInventory" },
+
+                    new Resource { Id = partTransactionFeatureId, ResourceName = "PartTransaction" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -191,7 +207,39 @@ namespace AssetFlow.Data.Seeds.User
 
                     new Resource { Id = 66, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentUpdate },
 
-                    new Resource { Id = 67, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentDelete }
+                    new Resource { Id = 67, FeatureId = assetComponentFeatureId, ResourceName = Permissions.AssetComponentDelete },
+
+                    new Resource { Id = 72, FeatureId = partCategoryFeatureId, ResourceName = Permissions.PartCategoryView },
+
+                    new Resource { Id = 73, FeatureId = partCategoryFeatureId, ResourceName = Permissions.PartCategoryCreate },
+
+                    new Resource { Id = 74, FeatureId = partCategoryFeatureId, ResourceName = Permissions.PartCategoryUpdate },
+
+                    new Resource { Id = 75, FeatureId = partCategoryFeatureId, ResourceName = Permissions.PartCategoryDelete },
+
+                    new Resource { Id = 76, FeatureId = partFeatureId, ResourceName = Permissions.PartView },
+
+                    new Resource { Id = 77, FeatureId = partFeatureId, ResourceName = Permissions.PartCreate },
+
+                    new Resource { Id = 78, FeatureId = partFeatureId, ResourceName = Permissions.PartUpdate },
+
+                    new Resource { Id = 79, FeatureId = partFeatureId, ResourceName = Permissions.PartDelete },
+
+                    new Resource { Id = 80, FeatureId = partInventoryFeatureId, ResourceName = Permissions.PartInventoryView },
+
+                    new Resource { Id = 81, FeatureId = partInventoryFeatureId, ResourceName = Permissions.PartInventoryCreate },
+
+                    new Resource { Id = 82, FeatureId = partInventoryFeatureId, ResourceName = Permissions.PartInventoryUpdate },
+
+                    new Resource { Id = 83, FeatureId = partInventoryFeatureId, ResourceName = Permissions.PartInventoryDelete },
+
+                    new Resource { Id = 84, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionView },
+
+                    new Resource { Id = 85, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionCreate },
+
+                    new Resource { Id = 86, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionUpdate },
+
+                    new Resource { Id = 87, FeatureId = partTransactionFeatureId, ResourceName = Permissions.PartTransactionDelete }
 
                 });
 

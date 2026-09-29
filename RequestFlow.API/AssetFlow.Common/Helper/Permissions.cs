@@ -68,5 +68,25 @@ namespace AssetFlow.Common.Helper
         public const string AssetComponentUpdate = "AssetComponent.Update";
         public const string AssetComponentView = "AssetComponent.View";
         public const string AssetComponentDelete = "AssetComponent.Delete";
+
+        public const string PartCategoryCreate = "PartCategory.Create";
+        public const string PartCategoryUpdate = "PartCategory.Update";
+        public const string PartCategoryView = "PartCategory.View";
+        public const string PartCategoryDelete = "PartCategory.Delete";
+
+        public const string PartCreate = "Part.Create";
+        public const string PartUpdate = "Part.Update";
+        public const string PartView = "Part.View";
+        public const string PartDelete = "Part.Delete";
+
+        public const string PartInventoryCreate = "PartInventory.Create";
+        public const string PartInventoryUpdate = "PartInventory.Update";
+        public const string PartInventoryView = "PartInventory.View";
+        public const string PartInventoryDelete = "PartInventory.Delete";
+
+        public const string PartTransactionCreate = "PartTransaction.Create";
+        public const string PartTransactionUpdate = "PartTransaction.Update";
+        public const string PartTransactionView = "PartTransaction.View";
+        public const string PartTransactionDelete = "PartTransaction.Delete";
     }
 }
