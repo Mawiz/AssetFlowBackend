@@ -1683,7 +1683,7 @@ namespace AssetFlow.Services.Core
 
                 ExpectedLifeUnit = line.ExpectedLifeUnit ?? part.ExpectedLifeUnit,
 
-                Notes = line.Notes,
+                Notes = line.Notes ?? string.Empty,
 
                 IsActive = true
 
@@ -1779,7 +1779,7 @@ namespace AssetFlow.Services.Core
 
                 ExpectedLifeUnit = source.ExpectedLifeUnit,
 
-                Notes = source.Notes,
+                Notes = source.Notes ?? string.Empty,
 
                 IsActive = true
 
@@ -1941,9 +1941,9 @@ namespace AssetFlow.Services.Core
 
                 ReturnedFromUserId = p.ReturnedFromUserId,
 
-                Reason = p.Reason,
+                Reason = p.Reason ?? string.Empty,
 
-                Remarks = p.Remarks,
+                Remarks = p.Remarks ?? string.Empty,
 
                 SupplierId = p.SupplierId,
 

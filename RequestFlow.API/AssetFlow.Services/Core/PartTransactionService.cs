@@ -140,9 +140,9 @@ namespace AssetFlow.Services.Core
 
                 PerformedByUserId = UserHelper.GetCurrentUserId(_httpContextAccessor),
 
-                Reason = dto.Reason,
+                Reason = dto.Reason ?? string.Empty,
 
-                Remarks = dto.Remarks,
+                Remarks = dto.Remarks ?? string.Empty,
 
                 IsActive = true
 
