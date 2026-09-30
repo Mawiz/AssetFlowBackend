@@ -225,6 +225,7 @@ namespace AssetFlow.Data.Data
             modelBuilder.Entity<PartSerialNumber>(psn =>
             {
                 psn.HasIndex(x => new { x.TenantId, x.SerialNumber }).IsUnique();
+                psn.Property(x => x.SupplierSerialReference).HasMaxLength(200).IsRequired();
                 psn.HasOne(x => x.Part).WithMany(x => x.SerialNumbers).HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
                 psn.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
                 psn.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
@@ -236,6 +237,7 @@ namespace AssetFlow.Data.Data
                 pi.HasOne(x => x.Part).WithMany(x => x.InventoryItems).HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
                 pi.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
                 pi.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+                pi.HasOne(x => x.PartTransaction).WithMany().HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PartTransaction>(pt =>

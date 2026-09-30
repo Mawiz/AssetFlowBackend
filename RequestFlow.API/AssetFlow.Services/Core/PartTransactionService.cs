@@ -42,7 +42,7 @@ namespace AssetFlow.Services.Core
             {
                 TenantId = tenantResult.TenantId,
                 PartId = dto.PartId,
-                PartSerialNumberId = dto.PartSerialNumberId,
+                PartSerialNumberId = null,
                 TransactionType = dto.TransactionType,
                 Quantity = dto.Quantity,
                 FromLocationId = dto.FromLocationId,
@@ -99,7 +99,8 @@ namespace AssetFlow.Services.Core
                 .Include(x => x.FromLocation)
                 .Include(x => x.ToLocation)
                 .Include(x => x.PerformedByUser)
-                .Include(x => x.Tenant);
+                .Include(x => x.Tenant)
+                .Include(x => x.Supplier);
 
         private static System.Linq.Expressions.Expression<Func<PartTransaction, PartTransactionDto>> ProjectToDto() =>
             x => new PartTransactionDto
@@ -110,8 +111,8 @@ namespace AssetFlow.Services.Core
                 PartId = x.PartId,
                 PartNumber = x.Part.PartNumber,
                 PartName = x.Part.PartName,
-                PartSerialNumberId = x.PartSerialNumberId,
-                SerialNumber = x.PartSerialNumber != null ? x.PartSerialNumber.SerialNumber : null,
+                PartSerialNumberId = null,
+                SerialNumber = null,
                 TransactionType = x.TransactionType,
                 Quantity = x.Quantity,
                 FromLocationId = x.FromLocationId,
@@ -122,6 +123,8 @@ namespace AssetFlow.Services.Core
                 PerformedByUserId = x.PerformedByUserId,
                 PerformedByUserName = x.PerformedByUser != null ? (x.PerformedByUser.FullName ?? x.PerformedByUser.UserName) : null,
                 Remarks = x.Remarks,
+                SupplierId = x.SupplierId,
+                SupplierName = x.Supplier != null ? x.Supplier.Name : null,
                 IsActive = x.IsActive
             };
 

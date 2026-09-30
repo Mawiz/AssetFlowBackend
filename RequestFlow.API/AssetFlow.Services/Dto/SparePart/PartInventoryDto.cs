@@ -13,6 +13,7 @@ namespace AssetFlow.Services.Dto.SparePart
         public string SupplierName { get; set; }
         public string TenantName { get; set; }
         public bool IsLowStock { get; set; }
+        public int? PartTransactionId { get; set; }
     }
 
     public class CreatePartInventoryDto
@@ -88,6 +89,7 @@ namespace AssetFlow.Services.Dto.SparePart
 
     public class PartBatchReceiptResultDto
     {
+        public int ReceiptTransactionId { get; set; }
         public List<PartInventoryDto> Items { get; set; } = new();
         public List<string> GeneratedSerialNumbers { get; set; } = new();
     }

@@ -18,6 +18,9 @@ namespace AssetFlow.Data.Entities.SparePart
         public int? PartSerialNumberId { get; set; }
         public virtual PartSerialNumber PartSerialNumber { get; set; }
 
+        public int? PartTransactionId { get; set; }
+        public virtual PartTransaction PartTransaction { get; set; }
+
         public decimal QuantityAvailable { get; set; }
         public decimal QuantityReserved { get; set; }
 

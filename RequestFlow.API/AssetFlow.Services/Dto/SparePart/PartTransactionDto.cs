@@ -13,6 +13,8 @@ namespace AssetFlow.Services.Dto.SparePart
         public int? PerformedByUserId { get; set; }
         public string PerformedByUserName { get; set; }
         public string TenantName { get; set; }
+        public int? SupplierId { get; set; }
+        public string SupplierName { get; set; }
         public bool IsActive { get; set; }
     }
 

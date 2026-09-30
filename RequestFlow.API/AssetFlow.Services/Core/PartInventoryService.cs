@@ -125,7 +125,7 @@ namespace AssetFlow.Services.Core
             {
                 if (supplierRefs.Count != dto.Quantity)
                 {
-                    response.AddError("Scan mode requires one supplier QR/barcode per unit (count must match quantity).");
+                    response.AddError("Enter or scan one supplier serial per unit (count must match quantity).");
                     response.StatusCode = HttpStatusCode.BadRequest;
                     return response;
                 }
@@ -159,6 +159,19 @@ namespace AssetFlow.Services.Core
                 var result = new PartBatchReceiptResultDto();
                 var received = dto.ReceivedDate ?? DateTime.UtcNow;
 
+                var receiptTransactionId = await CreateTransactionAsync(
+                    part.Id,
+                    (int)Enums.PartTransactionType.Receipt,
+                    dto.Quantity,
+                    null,
+                    dto.LocationId,
+                    dto.Remarks,
+                    tenantResult.TenantId,
+                    dto.SupplierId,
+                    dto.ReceivedDate);
+
+                result.ReceiptTransactionId = receiptTransactionId;
+
                 for (var i = 0; i < dto.Quantity; i++)
                 {
                     var internalSerial = internalSerials[i];
@@ -170,7 +183,10 @@ namespace AssetFlow.Services.Core
                         return response;
                     }
 
-                    string? supplierRef = dto.ReceiptMode == scanMode ? supplierRefs[i] : null;
+                    // Auto: our generated serial is the item identifier. Scan: store supplier label separately; internal serial is still system-generated.
+                    var supplierRef = dto.ReceiptMode == scanMode
+                        ? supplierRefs[i].Trim()
+                        : internalSerial;
 
                     var serialEntity = new PartSerialNumber
                     {
@@ -195,6 +211,7 @@ namespace AssetFlow.Services.Core
                         PartId = part.Id,
                         LocationId = dto.LocationId,
                         PartSerialNumberId = serialEntity.Id,
+                        PartTransactionId = receiptTransactionId,
                         QuantityAvailable = 1,
                         QuantityReserved = 0,
                         Status = (int)Enums.PartInventoryStatus.InStock,
@@ -202,9 +219,6 @@ namespace AssetFlow.Services.Core
                     };
                     _context.PartInventories.Add(inventory);
                     await _context.SaveChangesAsync();
-
-                    await RecordTransactionAsync(part.Id, serialEntity.Id, (int)Enums.PartTransactionType.Receipt,
-                        1, null, dto.LocationId, dto.Remarks, tenantResult.TenantId, dto.SupplierId);
 
                     var mapped = await MapToDtoAsync(inventory.Id);
                     if (mapped != null)
@@ -266,8 +280,8 @@ namespace AssetFlow.Services.Core
             }
 
             await _context.SaveChangesAsync();
-            await RecordTransactionAsync(inv.PartId, inv.PartSerialNumberId, (int)Enums.PartTransactionType.Transfer,
-                dto.Quantity, fromLocationId, dto.ToLocationId, dto.Remarks, inv.TenantId);
+            await CreateTransactionAsync(inv.PartId, (int)Enums.PartTransactionType.Transfer,
+                dto.Quantity, fromLocationId, dto.ToLocationId, dto.Remarks, inv.TenantId, null, null);
 
             response.Result = await MapToDtoAsync(target.Id);
             return response;
@@ -284,8 +298,8 @@ namespace AssetFlow.Services.Core
 
             inv.QuantityAvailable = newQty;
             await _context.SaveChangesAsync();
-            await RecordTransactionAsync(inv.PartId, inv.PartSerialNumberId, (int)Enums.PartTransactionType.Adjustment,
-                Math.Abs(dto.QuantityChange), inv.LocationId, inv.LocationId, dto.Remarks, inv.TenantId);
+            await CreateTransactionAsync(inv.PartId, (int)Enums.PartTransactionType.Adjustment,
+                Math.Abs(dto.QuantityChange), inv.LocationId, inv.LocationId, dto.Remarks, inv.TenantId, null, null);
 
             response.Result = await MapToDtoAsync(inv.Id);
             return response;
@@ -303,26 +317,36 @@ namespace AssetFlow.Services.Core
             return response;
         }
 
-        private async Task RecordTransactionAsync(int partId, int? serialId, int type, decimal qty,
-            int? fromLoc, int? toLoc, string remarks, int? tenantId, int? supplierId = null)
+        private async Task<int> CreateTransactionAsync(
+            int partId,
+            int type,
+            decimal qty,
+            int? fromLoc,
+            int? toLoc,
+            string remarks,
+            int? tenantId,
+            int? supplierId,
+            DateTime? transactionDate)
         {
             int? userId = UserHelper.GetCurrentUserId(_httpContextAccessor);
-            _context.PartTransactions.Add(new PartTransaction
+            var entity = new PartTransaction
             {
                 TenantId = tenantId,
                 PartId = partId,
-                PartSerialNumberId = serialId,
+                PartSerialNumberId = null,
                 TransactionType = type,
                 Quantity = qty,
                 FromLocationId = fromLoc,
                 ToLocationId = toLoc,
-                TransactionDate = DateTime.UtcNow,
+                TransactionDate = transactionDate ?? DateTime.UtcNow,
                 PerformedByUserId = userId,
                 Remarks = remarks,
                 SupplierId = supplierId,
                 IsActive = true
-            });
+            };
+            _context.PartTransactions.Add(entity);
             await _context.SaveChangesAsync();
+            return entity.Id;
         }
 
         private async Task<string?> ValidateSupplierAsync(int supplierId, int? tenantId)
@@ -366,7 +390,8 @@ namespace AssetFlow.Services.Core
                 QuantityAvailable = x.QuantityAvailable,
                 QuantityReserved = x.QuantityReserved,
                 Status = x.Status,
-                IsActive = x.IsActive
+                IsActive = x.IsActive,
+                PartTransactionId = x.PartTransactionId
             };
 
         private async Task<PartInventoryDto?> MapToDtoAsync(int id) =>
