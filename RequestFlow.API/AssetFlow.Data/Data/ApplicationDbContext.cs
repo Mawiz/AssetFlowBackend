@@ -63,7 +63,9 @@ namespace AssetFlow.Data.Data
         public DbSet<Part> Parts { get; set; }
         public DbSet<PartSerialNumber> PartSerialNumbers { get; set; }
         public DbSet<PartInventory> PartInventories { get; set; }
+        public DbSet<PartInventoryBatch> PartInventoryBatches { get; set; }
         public DbSet<PartTransaction> PartTransactions { get; set; }
+        public DbSet<PartTransactionSerial> PartTransactionSerials { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         #endregion SparePart
 
@@ -227,27 +229,43 @@ namespace AssetFlow.Data.Data
                 psn.HasIndex(x => new { x.TenantId, x.SerialNumber }).IsUnique();
                 psn.Property(x => x.SupplierSerialReference).HasMaxLength(200).IsRequired();
                 psn.HasOne(x => x.Part).WithMany(x => x.SerialNumbers).HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
+                psn.HasOne(x => x.PartInventoryBatch).WithMany(x => x.SerialNumbers).HasForeignKey(x => x.PartInventoryBatchId).OnDelete(DeleteBehavior.Restrict);
                 psn.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
                 psn.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PartInventory>(pi =>
             {
-                pi.HasIndex(x => new { x.TenantId, x.PartId, x.LocationId, x.PartSerialNumberId }).IsUnique();
+                pi.HasIndex(x => new { x.TenantId, x.PartId, x.LocationId }).IsUnique();
                 pi.HasOne(x => x.Part).WithMany(x => x.InventoryItems).HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
                 pi.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
-                pi.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
-                pi.HasOne(x => x.PartTransaction).WithMany().HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartInventoryBatch>(pib =>
+            {
+                pib.HasIndex(x => new { x.TenantId, x.BatchReference }).IsUnique();
+                pib.HasOne(x => x.PartInventory).WithMany(x => x.Batches).HasForeignKey(x => x.PartInventoryId).OnDelete(DeleteBehavior.Restrict);
+                pib.HasOne(x => x.Part).WithMany().HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
+                pib.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PartTransaction>(pt =>
             {
                 pt.HasOne(x => x.Part).WithMany().HasForeignKey(x => x.PartId).OnDelete(DeleteBehavior.Restrict);
-                pt.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.PartInventory).WithMany().HasForeignKey(x => x.PartInventoryId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.PartInventoryBatch).WithMany().HasForeignKey(x => x.PartInventoryBatchId).OnDelete(DeleteBehavior.Restrict);
                 pt.HasOne(x => x.FromLocation).WithMany().HasForeignKey(x => x.FromLocationId).OnDelete(DeleteBehavior.Restrict);
                 pt.HasOne(x => x.ToLocation).WithMany().HasForeignKey(x => x.ToLocationId).OnDelete(DeleteBehavior.Restrict);
                 pt.HasOne(x => x.PerformedByUser).WithMany().HasForeignKey(x => x.PerformedByUserId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.IssuedToUser).WithMany().HasForeignKey(x => x.IssuedToUserId).OnDelete(DeleteBehavior.Restrict);
+                pt.HasOne(x => x.ReturnedFromUser).WithMany().HasForeignKey(x => x.ReturnedFromUserId).OnDelete(DeleteBehavior.Restrict);
                 pt.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartTransactionSerial>(pts =>
+            {
+                pts.HasOne(x => x.PartTransaction).WithMany(x => x.TransactionSerials).HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Cascade);
+                pts.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
             });
 
             Seed.Run(modelBuilder);

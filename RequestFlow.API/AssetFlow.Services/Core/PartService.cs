@@ -102,8 +102,8 @@ namespace AssetFlow.Services.Core
             if (model.LowStockOnly == true)
             {
                 query = query.Where(p =>
-                    (_context.PartInventories.Where(i => i.PartId == p.Id && i.IsActive)
-                        .Sum(i => (decimal?)i.QuantityAvailable) ?? 0) < p.MinStockLevel);
+                    (_context.PartInventories.Where(i => i.PartId == p.Id && i.IsActive && !i.IsDeleted)
+                        .Sum(i => (decimal?)i.AvailableQuantity) ?? 0) < p.MinStockLevel);
             }
 
             var projected = query.Select(ProjectToDto());
@@ -161,7 +161,7 @@ namespace AssetFlow.Services.Core
             entity.ExpectedLifeUnit = dto.ExpectedLifeUnit;
             entity.MinStockLevel = dto.MinStockLevel;
             entity.MaxStockLevel = dto.MaxStockLevel;
-            entity.IsSerialized = true;
+            entity.IsSerialized = dto.IsSerialized;
             entity.IsActive = dto.IsActive;
             return entity;
         }

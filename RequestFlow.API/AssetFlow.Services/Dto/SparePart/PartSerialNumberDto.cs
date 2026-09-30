@@ -12,6 +12,11 @@ namespace AssetFlow.Services.Dto.SparePart
         public int? SupplierId { get; set; }
         public string SupplierName { get; set; }
         public string SupplierSerialReference { get; set; }
+        public int? PartInventoryBatchId { get; set; }
+        public string BatchReference { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        public int? ExpectedLifeValue { get; set; }
+        public int? ExpectedLifeUnit { get; set; }
     }
 
     public class CreatePartSerialNumberDto

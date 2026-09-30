@@ -35,9 +35,15 @@ namespace AssetFlow.Services.Core
             var err = await ValidateAsync(dto, tenantResult.TenantId, dto.Id);
             if (err != null) { response.AddError(err); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
+            if (dto.LocationId.HasValue && dto.LocationId != entity.LocationId)
+            {
+                response.AddError("Change location using Transfer or Return inventory operations.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
             entity.Status = dto.Status;
             entity.ReceivedDate = dto.ReceivedDate;
-            entity.LocationId = dto.LocationId;
             entity.WarrantyStartDate = dto.WarrantyStartDate;
             entity.WarrantyEndDate = dto.WarrantyEndDate;
             entity.IsActive = dto.IsActive;
@@ -150,7 +156,12 @@ namespace AssetFlow.Services.Core
         }
 
         private IQueryable<PartSerialNumber> BuildQuery() =>
-            _context.PartSerialNumbers.Include(x => x.Part).Include(x => x.Location).Include(x => x.Tenant).Include(x => x.Supplier);
+            _context.PartSerialNumbers
+                .Include(x => x.Part)
+                .Include(x => x.Location)
+                .Include(x => x.Tenant)
+                .Include(x => x.Supplier)
+                .Include(x => x.PartInventoryBatch);
 
         private static System.Linq.Expressions.Expression<Func<PartSerialNumber, PartSerialNumberDto>> ProjectToDto() =>
             x => new PartSerialNumberDto
@@ -171,7 +182,12 @@ namespace AssetFlow.Services.Core
                 IsActive = x.IsActive,
                 SupplierId = x.SupplierId,
                 SupplierName = x.Supplier != null ? x.Supplier.Name : null,
-                SupplierSerialReference = x.SupplierSerialReference
+                SupplierSerialReference = x.SupplierSerialReference,
+                PartInventoryBatchId = x.PartInventoryBatchId,
+                BatchReference = x.PartInventoryBatch != null ? x.PartInventoryBatch.BatchReference : null,
+                ExpiryDate = x.ExpiryDate,
+                ExpectedLifeValue = x.ExpectedLifeValue,
+                ExpectedLifeUnit = x.ExpectedLifeUnit
             };
 
         private async Task<PartSerialNumberDto?> MapToDtoAsync(int id) =>
