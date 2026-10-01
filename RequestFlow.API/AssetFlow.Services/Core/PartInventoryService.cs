@@ -88,13 +88,18 @@ namespace AssetFlow.Services.Core
 
                 .Include(x => x.Supplier)
 
-                .Include(x => x.SerialNumbers)
-
                 .FirstOrDefaultAsync(x => x.Id == batchId);
 
             if (batch == null) { response.AddError("Batch not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
 
-
+            var batchSerials = await _context.PartSerialNumbers
+                .Include(s => s.Location)
+                .Include(s => s.PartInventoryBatch)
+                .Where(s => s.IsActive && (
+                    s.OriginPartInventoryBatchId == batchId
+                    || (s.OriginPartInventoryBatchId == null && s.PartInventoryBatchId == batchId)))
+                .OrderBy(s => s.SerialNumber)
+                .ToListAsync();
 
             response.Result = new PartInventoryBatchDetailDto
 
@@ -140,7 +145,7 @@ namespace AssetFlow.Services.Core
 
                 LocationName = batch.PartInventory?.Location?.Name,
 
-                SerialNumbers = batch.SerialNumbers.Where(s => s.IsActive).Select(s => new PartSerialNumberDto
+                SerialNumbers = batchSerials.Select(s => new PartSerialNumberDto
 
                 {
 
@@ -153,6 +158,8 @@ namespace AssetFlow.Services.Core
                     Status = s.Status,
 
                     LocationId = s.LocationId,
+
+                    LocationName = s.Location?.Name,
 
                     ExpiryDate = s.ExpiryDate,
 
@@ -170,7 +177,15 @@ namespace AssetFlow.Services.Core
 
                     WarrantyEndDate = s.WarrantyEndDate,
 
-                    IsActive = s.IsActive
+                    IsActive = s.IsActive,
+
+                    PartInventoryBatchId = s.PartInventoryBatchId,
+
+                    OriginPartInventoryBatchId = s.OriginPartInventoryBatchId ?? s.PartInventoryBatchId,
+
+                    BatchReference = s.PartInventoryBatch?.BatchReference,
+
+                    IsAtOpenBatch = s.PartInventoryBatchId == batchId
 
                 }).ToList()
 
@@ -1604,6 +1619,8 @@ namespace AssetFlow.Services.Core
                     PartId = part.Id,
 
                     PartInventoryBatchId = batch.Id,
+
+                    OriginPartInventoryBatchId = batch.Id,
 
                     SerialNumber = internalSerial,
 

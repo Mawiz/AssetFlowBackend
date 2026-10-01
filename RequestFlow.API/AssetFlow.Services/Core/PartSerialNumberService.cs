@@ -184,6 +184,7 @@ namespace AssetFlow.Services.Core
                 SupplierName = x.Supplier != null ? x.Supplier.Name : null,
                 SupplierSerialReference = x.SupplierSerialReference,
                 PartInventoryBatchId = x.PartInventoryBatchId,
+                OriginPartInventoryBatchId = x.OriginPartInventoryBatchId,
                 BatchReference = x.PartInventoryBatch != null ? x.PartInventoryBatch.BatchReference : null,
                 ExpiryDate = x.ExpiryDate,
                 ExpectedLifeValue = x.ExpectedLifeValue,

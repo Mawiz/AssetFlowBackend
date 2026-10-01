@@ -91,6 +91,14 @@ IF COL_LENGTH('PartSerialNumbers', 'ExpectedLifeValue') IS NULL
     ALTER TABLE PartSerialNumbers ADD ExpectedLifeValue INT NULL;
 IF COL_LENGTH('PartSerialNumbers', 'ExpectedLifeUnit') IS NULL
     ALTER TABLE PartSerialNumbers ADD ExpectedLifeUnit INT NULL;
+IF COL_LENGTH('PartSerialNumbers', 'OriginPartInventoryBatchId') IS NULL
+    ALTER TABLE PartSerialNumbers ADD OriginPartInventoryBatchId INT NULL;
+GO
+
+-- Backfill origin batch for serial traceability in batch detail (all items ever received in a batch)
+UPDATE PartSerialNumbers
+SET OriginPartInventoryBatchId = PartInventoryBatchId
+WHERE OriginPartInventoryBatchId IS NULL AND PartInventoryBatchId IS NOT NULL;
 GO
 
 -- 6) After data migration: drop legacy PartInventories columns/indexes

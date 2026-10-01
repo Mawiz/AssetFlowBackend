@@ -13,7 +13,10 @@ namespace AssetFlow.Services.Dto.SparePart
         public string SupplierName { get; set; }
         public string SupplierSerialReference { get; set; }
         public int? PartInventoryBatchId { get; set; }
+        public int? OriginPartInventoryBatchId { get; set; }
         public string BatchReference { get; set; }
+        /// <summary>True when the serial is still on this batch row (can be operated from the open batch view).</summary>
+        public bool IsAtOpenBatch { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public int? ExpectedLifeValue { get; set; }
         public int? ExpectedLifeUnit { get; set; }
