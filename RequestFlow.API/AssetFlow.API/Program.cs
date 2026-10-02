@@ -17,6 +17,7 @@ using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Core;
 using AssetFlow.Services.Core.Maintenance;
 using AssetFlow.Services.Core.Issue;
+using AssetFlow.Services.Core.WorkOrder;
 using AssetFlow.Services.Dto.User;
 using AssetFlow.Services.DtoValidation.User;
 using AssetFlow.Services.Mapping;
@@ -143,6 +144,7 @@ builder.Services.AddTransient<IPreventiveMaintenanceGenerationService, Preventiv
 builder.Services.AddTransient<IPreventiveMaintenanceService, PreventiveMaintenanceService>();
 builder.Services.AddTransient<IIssueCategoryService, IssueCategoryService>();
 builder.Services.AddTransient<IAssetIssueService, AssetIssueService>();
+builder.Services.AddTransient<IWorkOrderService, WorkOrderService>();
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

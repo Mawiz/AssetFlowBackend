@@ -143,5 +143,28 @@
             Resolved = 3,
             Cancelled = 4
         }
+
+        public enum WorkOrderSourceType
+        {
+            Issue = 1,
+            PreventiveMaintenance = 2
+        }
+
+        public enum WorkOrderStatus
+        {
+            New = 1,
+            Submitted = 2,
+            PendingAssignment = 3,
+            Assigned = 4,
+            Accepted = 5,
+            InProgress = 6,
+            WaitingForParts = 7,
+            WaitingForApproval = 8,
+            Completed = 9,
+            Rejected = 10,
+            Reopened = 11,
+            Cancelled = 12,
+            Closed = 13
+        }
     }
 }

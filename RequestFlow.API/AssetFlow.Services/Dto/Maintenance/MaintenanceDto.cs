@@ -172,6 +172,7 @@ namespace AssetFlow.Services.Dto.Maintenance
         public decimal? DueOperatingHours { get; set; }
         public decimal? DueCycles { get; set; }
         public int Status { get; set; }
+        public int? WorkOrderId { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public int? CompletedByUserId { get; set; }

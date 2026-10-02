@@ -10,6 +10,8 @@ using AssetFlow.Data.Entities.Asset;
 using AssetFlow.Data.Entities.SparePart;
 using AssetFlow.Data.Entities.Maintenance;
 using AssetFlow.Data.Entities.Issue;
+using WorkOrderEntity = AssetFlow.Data.Entities.WorkOrder.WorkOrder;
+using AssetFlow.Data.Entities.WorkOrder;
 using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
@@ -87,6 +89,14 @@ namespace AssetFlow.Data.Data
         public DbSet<AssetIssue> AssetIssues { get; set; }
         public DbSet<IssueAttachment> IssueAttachments { get; set; }
         #endregion Issue
+
+        #region WorkOrder
+        public DbSet<WorkOrderEntity> WorkOrders { get; set; }
+        public DbSet<WorkOrderDiagnosis> WorkOrderDiagnoses { get; set; }
+        public DbSet<WorkOrderStatusHistory> WorkOrderStatusHistories { get; set; }
+        public DbSet<WorkOrderAssignmentHistory> WorkOrderAssignmentHistories { get; set; }
+        public DbSet<WorkOrderAttachment> WorkOrderAttachments { get; set; }
+        #endregion WorkOrder
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -365,6 +375,49 @@ namespace AssetFlow.Data.Data
             modelBuilder.Entity<IssueAttachment>(e =>
             {
                 e.HasOne(x => x.AssetIssue).WithMany(x => x.Attachments).HasForeignKey(x => x.AssetIssueId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WorkOrderEntity>(e =>
+            {
+                e.HasIndex(x => new { x.TenantId, x.WorkOrderNumber }).IsUnique();
+                e.HasIndex(x => x.Status);
+                e.HasIndex(x => x.AssignedToUserId);
+                e.HasIndex(x => x.AssetId);
+                e.HasIndex(x => x.AssetIssueId);
+                e.HasIndex(x => x.PreventiveMaintenanceOccurrenceId);
+                e.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.AssetIssue).WithMany().HasForeignKey(x => x.AssetIssueId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.PreventiveMaintenanceOccurrence).WithMany().HasForeignKey(x => x.PreventiveMaintenanceOccurrenceId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.AssignedByUser).WithMany().HasForeignKey(x => x.AssignedByUserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.AssignedToUser).WithMany().HasForeignKey(x => x.AssignedToUserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.CompletedByUser).WithMany().HasForeignKey(x => x.CompletedByUserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.ApprovedByUser).WithMany().HasForeignKey(x => x.ApprovedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<WorkOrderDiagnosis>(e =>
+            {
+                e.HasIndex(x => x.WorkOrderId).IsUnique();
+                e.HasOne(x => x.WorkOrder).WithOne(x => x.Diagnosis).HasForeignKey<WorkOrderDiagnosis>(x => x.WorkOrderId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.DiagnosedByUser).WithMany().HasForeignKey(x => x.DiagnosedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<WorkOrderStatusHistory>(e =>
+            {
+                e.HasOne(x => x.WorkOrder).WithMany(x => x.StatusHistory).HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.ChangedByUser).WithMany().HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<WorkOrderAssignmentHistory>(e =>
+            {
+                e.HasOne(x => x.WorkOrder).WithMany(x => x.AssignmentHistory).HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.AssignedToUser).WithMany().HasForeignKey(x => x.AssignedToUserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.AssignedByUser).WithMany().HasForeignKey(x => x.AssignedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<WorkOrderAttachment>(e =>
+            {
+                e.HasOne(x => x.WorkOrder).WithMany(x => x.Attachments).HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Cascade);
             });
 
             Seed.Run(modelBuilder);

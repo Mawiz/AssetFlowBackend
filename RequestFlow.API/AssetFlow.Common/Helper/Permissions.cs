@@ -123,5 +123,21 @@ namespace AssetFlow.Common.Helper
         public const string AssetIssueUpdate = "AssetIssue.Update";
         public const string AssetIssueView = "AssetIssue.View";
         public const string AssetIssueDelete = "AssetIssue.Delete";
+
+        public const string WorkOrderView = "WorkOrder.View";
+        public const string WorkOrderCreate = "WorkOrder.Create";
+        public const string WorkOrderUpdate = "WorkOrder.Update";
+        public const string WorkOrderDelete = "WorkOrder.Delete";
+        public const string WorkOrderAssign = "WorkOrder.Assign";
+        public const string WorkOrderReassign = "WorkOrder.Reassign";
+        public const string WorkOrderAccept = "WorkOrder.Accept";
+        public const string WorkOrderStart = "WorkOrder.Start";
+        public const string WorkOrderPause = "WorkOrder.Pause";
+        public const string WorkOrderResume = "WorkOrder.Resume";
+        public const string WorkOrderComplete = "WorkOrder.Complete";
+        public const string WorkOrderApprove = "WorkOrder.Approve";
+        public const string WorkOrderReject = "WorkOrder.Reject";
+        public const string WorkOrderReopen = "WorkOrder.Reopen";
+        public const string WorkOrderCancel = "WorkOrder.Cancel";
     }
 }

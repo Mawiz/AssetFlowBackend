@@ -307,6 +307,7 @@ namespace AssetFlow.Services.Core.Maintenance
                 DueOperatingHours = x.DueOperatingHours,
                 DueCycles = x.DueCycles,
                 Status = x.Status,
+                WorkOrderId = x.WorkOrderId,
                 StartedAt = x.StartedAt,
                 CompletedAt = x.CompletedAt,
                 CompletedByUserId = x.CompletedByUserId,

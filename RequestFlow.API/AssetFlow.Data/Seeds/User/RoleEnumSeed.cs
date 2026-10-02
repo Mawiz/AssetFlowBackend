@@ -56,6 +56,7 @@ namespace AssetFlow.Data.Seeds.User
             const int preventiveMaintenanceFeatureId = 103;
             const int issueCategoryFeatureId = 120;
             const int assetIssueFeatureId = 121;
+            const int workOrderFeatureId = 122;
 
             modelBuilder.Entity<Resource>()
 
@@ -104,6 +105,7 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = preventiveMaintenanceFeatureId, ResourceName = "PreventiveMaintenance" },
                     new Resource { Id = issueCategoryFeatureId, ResourceName = "IssueCategory" },
                     new Resource { Id = assetIssueFeatureId, ResourceName = "AssetIssue" },
+                    new Resource { Id = workOrderFeatureId, ResourceName = "WorkOrder" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -293,7 +295,23 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 132, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueView },
                     new Resource { Id = 133, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueCreate },
                     new Resource { Id = 134, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueUpdate },
-                    new Resource { Id = 135, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueDelete }
+                    new Resource { Id = 135, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueDelete },
+
+                    new Resource { Id = 136, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderView },
+                    new Resource { Id = 137, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderCreate },
+                    new Resource { Id = 138, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderUpdate },
+                    new Resource { Id = 139, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderDelete },
+                    new Resource { Id = 140, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderAssign },
+                    new Resource { Id = 141, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderReassign },
+                    new Resource { Id = 142, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderAccept },
+                    new Resource { Id = 143, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderStart },
+                    new Resource { Id = 144, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderPause },
+                    new Resource { Id = 145, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderResume },
+                    new Resource { Id = 146, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderComplete },
+                    new Resource { Id = 147, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderApprove },
+                    new Resource { Id = 148, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderReject },
+                    new Resource { Id = 149, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderReopen },
+                    new Resource { Id = 150, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderCancel }
 
                 });
 
