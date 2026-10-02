@@ -10,10 +10,10 @@ namespace AssetFlow.Data.Entities.Maintenance
         public int? SourceChecklistItemId { get; set; }
 
         [StringLength(500)]
-        public string ItemText { get; set; }
+        public string ItemText { get; set; } = string.Empty;
 
         [StringLength(1000)]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         public int ResponseType { get; set; }
 
@@ -23,7 +23,7 @@ namespace AssetFlow.Data.Entities.Maintenance
 
         /// <summary>JSON array of option strings captured at occurrence generation.</summary>
         [StringLength(4000)]
-        public string OptionsJson { get; set; }
+        public string OptionsJson { get; set; } = "[]";
 
         public virtual PreventiveMaintenanceChecklistResponse Response { get; set; }
     }

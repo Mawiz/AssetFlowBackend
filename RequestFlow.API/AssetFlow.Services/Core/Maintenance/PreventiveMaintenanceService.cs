@@ -106,9 +106,9 @@ namespace AssetFlow.Services.Core.Maintenance
                         {
                             PreventiveMaintenanceOccurrenceId = occurrence.Id,
                             OccurrenceChecklistItemId = item.Id,
-                            ResponseValue = submitted.ResponseValue?.Trim(),
+                            ResponseValue = submitted.ResponseValue?.Trim() ?? string.Empty,
                             NumericValue = submitted.NumericValue,
-                            Remarks = submitted.Remarks,
+                            Remarks = submitted.Remarks?.Trim() ?? string.Empty,
                             IsActive = true
                         });
                     }
@@ -117,7 +117,7 @@ namespace AssetFlow.Services.Core.Maintenance
                 occurrence.Status = (int)Enums.PreventiveMaintenanceOccurrenceStatus.Completed;
                 occurrence.CompletedAt = DateTime.UtcNow;
                 occurrence.CompletedByUserId = UserHelper.GetCurrentUserId(_httpContextAccessor);
-                occurrence.Remarks = dto.Remarks;
+                occurrence.Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? string.Empty : dto.Remarks.Trim();
                 if (!occurrence.StartedAt.HasValue)
                 {
                     occurrence.StartedAt = occurrence.CompletedAt;

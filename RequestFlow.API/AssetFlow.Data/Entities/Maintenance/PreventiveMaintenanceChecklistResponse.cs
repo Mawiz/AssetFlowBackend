@@ -11,11 +11,11 @@ namespace AssetFlow.Data.Entities.Maintenance
         public virtual PreventiveMaintenanceOccurrenceChecklistItem OccurrenceChecklistItem { get; set; }
 
         [StringLength(500)]
-        public string ResponseValue { get; set; }
+        public string ResponseValue { get; set; } = string.Empty;
 
         public decimal? NumericValue { get; set; }
 
         [StringLength(1000)]
-        public string Remarks { get; set; }
+        public string Remarks { get; set; } = string.Empty;
     }
 }

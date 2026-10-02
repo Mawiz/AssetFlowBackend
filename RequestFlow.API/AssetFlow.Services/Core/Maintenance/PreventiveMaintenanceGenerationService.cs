@@ -162,7 +162,8 @@ namespace AssetFlow.Services.Core.Maintenance
                 DueDate = dueDate,
                 DueOperatingHours = dueHours,
                 DueCycles = dueCycles,
-                Status = PreventiveMaintenanceStatusHelper.ResolveOpenStatus(dueDate)
+                Status = PreventiveMaintenanceStatusHelper.ResolveOpenStatus(dueDate),
+                Remarks = string.Empty
             };
 
             if (schedule.MaintenanceChecklistId.HasValue)
@@ -180,12 +181,12 @@ namespace AssetFlow.Services.Core.Maintenance
                         occurrence.ChecklistItems.Add(new PreventiveMaintenanceOccurrenceChecklistItem
                         {
                             SourceChecklistItemId = item.Id,
-                            ItemText = item.ItemText,
-                            Description = item.Description,
+                            ItemText = item.ItemText ?? string.Empty,
+                            Description = item.Description ?? string.Empty,
                             ResponseType = item.ResponseType,
                             IsRequired = item.IsRequired,
                             SortOrder = item.SortOrder,
-                            OptionsJson = options.Count > 0 ? JsonSerializer.Serialize(options) : null,
+                            OptionsJson = options.Count > 0 ? JsonSerializer.Serialize(options) : "[]",
                             IsActive = true
                         });
                     }

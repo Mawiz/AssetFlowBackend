@@ -45,7 +45,7 @@ namespace AssetFlow.Data.Entities.Maintenance
         public virtual ApplicationUser CompletedByUser { get; set; }
 
         [StringLength(2000)]
-        public string Remarks { get; set; }
+        public string Remarks { get; set; } = string.Empty;
 
         /// <summary>Reserved for future Work Order integration.</summary>
         public int? WorkOrderId { get; set; }
