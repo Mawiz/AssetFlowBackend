@@ -6,6 +6,7 @@ namespace AssetFlow.Services.Dto.Maintenance
     {
         public int Id { get; set; }
         public int? TenantId { get; set; }
+        public string TenantName { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
@@ -54,6 +55,7 @@ namespace AssetFlow.Services.Dto.Maintenance
     {
         public int Id { get; set; }
         public int? TenantId { get; set; }
+        public string TenantName { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
@@ -89,6 +91,7 @@ namespace AssetFlow.Services.Dto.Maintenance
     {
         public int Id { get; set; }
         public int? TenantId { get; set; }
+        public string TenantName { get; set; }
         public int AssetId { get; set; }
         public string AssetCode { get; set; }
         public string AssetName { get; set; }
@@ -153,6 +156,7 @@ namespace AssetFlow.Services.Dto.Maintenance
     {
         public int Id { get; set; }
         public int? TenantId { get; set; }
+        public string TenantName { get; set; }
         public int MaintenanceScheduleId { get; set; }
         public string ScheduleName { get; set; }
         public int AssetId { get; set; }

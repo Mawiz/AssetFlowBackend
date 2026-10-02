@@ -292,6 +292,7 @@ namespace AssetFlow.Services.Core.Maintenance
             {
                 Id = x.Id,
                 TenantId = x.TenantId,
+                TenantName = x.Tenant != null ? x.Tenant.CompanyName : null,
                 MaintenanceScheduleId = x.MaintenanceScheduleId,
                 ScheduleName = x.MaintenanceSchedule.Name,
                 AssetId = x.AssetId,

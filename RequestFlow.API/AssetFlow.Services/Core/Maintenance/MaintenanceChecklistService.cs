@@ -123,6 +123,7 @@ namespace AssetFlow.Services.Core.Maintenance
             {
                 Id = x.Id,
                 TenantId = x.TenantId,
+                TenantName = x.Tenant != null ? x.Tenant.CompanyName : null,
                 Name = x.Name,
                 Code = x.Code,
                 Description = x.Description,
@@ -224,6 +225,7 @@ namespace AssetFlow.Services.Core.Maintenance
                 {
                     Id = x.Id,
                     TenantId = x.TenantId,
+                    TenantName = x.Tenant != null ? x.Tenant.CompanyName : null,
                     Name = x.Name,
                     Code = x.Code,
                     Description = x.Description,
