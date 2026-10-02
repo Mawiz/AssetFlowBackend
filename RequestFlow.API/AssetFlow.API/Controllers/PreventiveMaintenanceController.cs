@@ -44,7 +44,7 @@ namespace AssetFlow.API.Controllers
 
         [HttpPost("Complete")]
         [RequirePermission(Permissions.PreventiveMaintenanceComplete)]
-        public async Task<IActionResult> Complete(CompletePreventiveMaintenanceDto dto)
+        public async Task<IActionResult> Complete([FromBody] CompletePreventiveMaintenanceDto dto)
         {
             var response = await _pmService.CompleteAsync(dto);
             return StatusCode((int)response.StatusCode, response);

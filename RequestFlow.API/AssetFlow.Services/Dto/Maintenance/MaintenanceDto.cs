@@ -218,16 +218,16 @@ namespace AssetFlow.Services.Dto.Maintenance
     public class CompletePreventiveMaintenanceDto
     {
         public int OccurrenceId { get; set; }
-        public string Remarks { get; set; }
+        public string? Remarks { get; set; }
         public List<SubmitChecklistResponseDto> ChecklistResponses { get; set; } = new();
     }
 
     public class SubmitChecklistResponseDto
     {
         public int OccurrenceChecklistItemId { get; set; }
-        public string ResponseValue { get; set; }
+        public string? ResponseValue { get; set; }
         public decimal? NumericValue { get; set; }
-        public string Remarks { get; set; }
+        public string? Remarks { get; set; }
     }
 
     public class GeneratePreventiveMaintenanceDto
