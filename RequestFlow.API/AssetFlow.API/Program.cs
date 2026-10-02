@@ -15,6 +15,7 @@ using AssetFlow.Data.Identity;
 using AssetFlow.Data.Provider;
 using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Core;
+using AssetFlow.Services.Core.Maintenance;
 using AssetFlow.Services.Dto.User;
 using AssetFlow.Services.DtoValidation.User;
 using AssetFlow.Services.Mapping;
@@ -134,6 +135,11 @@ builder.Services.AddTransient(typeof(IPartService), typeof(PartService));
 builder.Services.AddTransient(typeof(IPartInventoryService), typeof(PartInventoryService));
 builder.Services.AddTransient(typeof(IPartSerialNumberService), typeof(PartSerialNumberService));
 builder.Services.AddTransient(typeof(IPartTransactionService), typeof(PartTransactionService));
+builder.Services.AddTransient<IMaintenanceTypeService, MaintenanceTypeService>();
+builder.Services.AddTransient<IMaintenanceChecklistService, MaintenanceChecklistService>();
+builder.Services.AddTransient<IMaintenanceScheduleService, MaintenanceScheduleService>();
+builder.Services.AddTransient<IPreventiveMaintenanceGenerationService, PreventiveMaintenanceGenerationService>();
+builder.Services.AddTransient<IPreventiveMaintenanceService, PreventiveMaintenanceService>();
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

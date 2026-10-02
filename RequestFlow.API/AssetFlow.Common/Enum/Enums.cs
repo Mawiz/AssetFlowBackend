@@ -94,5 +94,38 @@
             ReturnToSupplier = 9,
             Scrap = 10
         }
+
+        public enum MaintenanceRecurrenceType
+        {
+            Daily = 1,
+            Weekly = 2,
+            Monthly = 3,
+            Quarterly = 4,
+            HalfYearly = 5,
+            Yearly = 6,
+            EveryDays = 7,
+            OperatingHours = 8,
+            Cycles = 9,
+            Custom = 10
+        }
+
+        public enum ChecklistResponseType
+        {
+            PassFail = 1,
+            YesNo = 2,
+            Text = 3,
+            Numeric = 4,
+            Selection = 5
+        }
+
+        public enum PreventiveMaintenanceOccurrenceStatus
+        {
+            Upcoming = 1,
+            Due = 2,
+            InProgress = 3,
+            Completed = 4,
+            Overdue = 5,
+            Cancelled = 6
+        }
     }
 }

@@ -93,5 +93,25 @@ namespace AssetFlow.Common.Helper
         public const string SupplierUpdate = "Supplier.Update";
         public const string SupplierView = "Supplier.View";
         public const string SupplierDelete = "Supplier.Delete";
+
+        public const string MaintenanceTypeCreate = "MaintenanceType.Create";
+        public const string MaintenanceTypeUpdate = "MaintenanceType.Update";
+        public const string MaintenanceTypeView = "MaintenanceType.View";
+        public const string MaintenanceTypeDelete = "MaintenanceType.Delete";
+
+        public const string MaintenanceChecklistCreate = "MaintenanceChecklist.Create";
+        public const string MaintenanceChecklistUpdate = "MaintenanceChecklist.Update";
+        public const string MaintenanceChecklistView = "MaintenanceChecklist.View";
+        public const string MaintenanceChecklistDelete = "MaintenanceChecklist.Delete";
+
+        public const string MaintenanceScheduleCreate = "MaintenanceSchedule.Create";
+        public const string MaintenanceScheduleUpdate = "MaintenanceSchedule.Update";
+        public const string MaintenanceScheduleView = "MaintenanceSchedule.View";
+        public const string MaintenanceScheduleDelete = "MaintenanceSchedule.Delete";
+
+        public const string PreventiveMaintenanceView = "PreventiveMaintenance.View";
+        public const string PreventiveMaintenanceUpdate = "PreventiveMaintenance.Update";
+        public const string PreventiveMaintenanceComplete = "PreventiveMaintenance.Complete";
+        public const string PreventiveMaintenanceGenerate = "PreventiveMaintenance.Generate";
     }
 }

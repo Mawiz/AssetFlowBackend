@@ -8,6 +8,7 @@ using AssetFlow.Data.Entities.ACL;
 using AssetFlow.Data.Entities.Configurations;
 using AssetFlow.Data.Entities.Asset;
 using AssetFlow.Data.Entities.SparePart;
+using AssetFlow.Data.Entities.Maintenance;
 using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
@@ -68,6 +69,17 @@ namespace AssetFlow.Data.Data
         public DbSet<PartTransactionSerial> PartTransactionSerials { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         #endregion SparePart
+
+        #region Maintenance
+        public DbSet<MaintenanceType> MaintenanceTypes { get; set; }
+        public DbSet<MaintenanceChecklist> MaintenanceChecklists { get; set; }
+        public DbSet<MaintenanceChecklistItem> MaintenanceChecklistItems { get; set; }
+        public DbSet<MaintenanceChecklistItemOption> MaintenanceChecklistItemOptions { get; set; }
+        public DbSet<MaintenanceSchedule> MaintenanceSchedules { get; set; }
+        public DbSet<PreventiveMaintenanceOccurrence> PreventiveMaintenanceOccurrences { get; set; }
+        public DbSet<PreventiveMaintenanceOccurrenceChecklistItem> PreventiveMaintenanceOccurrenceChecklistItems { get; set; }
+        public DbSet<PreventiveMaintenanceChecklistResponse> PreventiveMaintenanceChecklistResponses { get; set; }
+        #endregion Maintenance
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -266,6 +278,66 @@ namespace AssetFlow.Data.Data
             {
                 pts.HasOne(x => x.PartTransaction).WithMany(x => x.TransactionSerials).HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Cascade);
                 pts.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<MaintenanceType>(e =>
+            {
+                e.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+            });
+
+            modelBuilder.Entity<MaintenanceChecklist>(e =>
+            {
+                e.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+                e.HasOne(x => x.MaintenanceType).WithMany().HasForeignKey(x => x.MaintenanceTypeId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<MaintenanceChecklistItem>(e =>
+            {
+                e.HasOne(x => x.MaintenanceChecklist).WithMany(x => x.Items).HasForeignKey(x => x.MaintenanceChecklistId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MaintenanceChecklistItemOption>(e =>
+            {
+                e.HasOne(x => x.MaintenanceChecklistItem).WithMany(x => x.Options).HasForeignKey(x => x.MaintenanceChecklistItemId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MaintenanceSchedule>(e =>
+            {
+                e.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.MaintenanceType).WithMany().HasForeignKey(x => x.MaintenanceTypeId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.MaintenanceChecklist).WithMany().HasForeignKey(x => x.MaintenanceChecklistId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.ResponsibleUser).WithMany().HasForeignKey(x => x.ResponsibleUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PreventiveMaintenanceOccurrence>(e =>
+            {
+                e.HasIndex(x => new { x.TenantId, x.MaintenanceScheduleId, x.ScheduledDate })
+                    .IsUnique()
+                    .HasFilter("[ScheduledDate] IS NOT NULL");
+                e.HasIndex(x => new { x.TenantId, x.MaintenanceScheduleId, x.DueOperatingHours })
+                    .IsUnique()
+                    .HasFilter("[DueOperatingHours] IS NOT NULL");
+                e.HasIndex(x => new { x.TenantId, x.MaintenanceScheduleId, x.DueCycles })
+                    .IsUnique()
+                    .HasFilter("[DueCycles] IS NOT NULL");
+                e.HasOne(x => x.MaintenanceSchedule).WithMany().HasForeignKey(x => x.MaintenanceScheduleId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.MaintenanceType).WithMany().HasForeignKey(x => x.MaintenanceTypeId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.MaintenanceChecklist).WithMany().HasForeignKey(x => x.MaintenanceChecklistId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.StartedByUser).WithMany().HasForeignKey(x => x.StartedByUserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.CompletedByUser).WithMany().HasForeignKey(x => x.CompletedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PreventiveMaintenanceOccurrenceChecklistItem>(e =>
+            {
+                e.HasOne(x => x.Occurrence).WithMany(x => x.ChecklistItems).HasForeignKey(x => x.PreventiveMaintenanceOccurrenceId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PreventiveMaintenanceChecklistResponse>(e =>
+            {
+                e.HasIndex(x => x.OccurrenceChecklistItemId).IsUnique();
+                e.HasOne(x => x.Occurrence).WithMany().HasForeignKey(x => x.PreventiveMaintenanceOccurrenceId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.OccurrenceChecklistItem).WithOne(x => x.Response).HasForeignKey<PreventiveMaintenanceChecklistResponse>(x => x.OccurrenceChecklistItemId).OnDelete(DeleteBehavior.Restrict);
             });
 
             Seed.Run(modelBuilder);

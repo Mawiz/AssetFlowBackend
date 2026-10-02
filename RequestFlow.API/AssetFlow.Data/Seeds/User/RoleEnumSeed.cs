@@ -50,6 +50,10 @@ namespace AssetFlow.Data.Seeds.User
             const int partTransactionFeatureId = 71;
 
             const int supplierFeatureId = 92;
+            const int maintenanceTypeFeatureId = 100;
+            const int maintenanceChecklistFeatureId = 101;
+            const int maintenanceScheduleFeatureId = 102;
+            const int preventiveMaintenanceFeatureId = 103;
 
             modelBuilder.Entity<Resource>()
 
@@ -92,6 +96,10 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = partTransactionFeatureId, ResourceName = "PartTransaction" },
 
                     new Resource { Id = supplierFeatureId, ResourceName = "Supplier" },
+                    new Resource { Id = maintenanceTypeFeatureId, ResourceName = "MaintenanceType" },
+                    new Resource { Id = maintenanceChecklistFeatureId, ResourceName = "MaintenanceChecklist" },
+                    new Resource { Id = maintenanceScheduleFeatureId, ResourceName = "MaintenanceSchedule" },
+                    new Resource { Id = preventiveMaintenanceFeatureId, ResourceName = "PreventiveMaintenance" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -251,7 +259,27 @@ namespace AssetFlow.Data.Seeds.User
 
                     new Resource { Id = 95, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierUpdate },
 
-                    new Resource { Id = 96, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierDelete }
+                    new Resource { Id = 96, FeatureId = supplierFeatureId, ResourceName = Permissions.SupplierDelete },
+
+                    new Resource { Id = 104, FeatureId = maintenanceTypeFeatureId, ResourceName = Permissions.MaintenanceTypeView },
+                    new Resource { Id = 105, FeatureId = maintenanceTypeFeatureId, ResourceName = Permissions.MaintenanceTypeCreate },
+                    new Resource { Id = 106, FeatureId = maintenanceTypeFeatureId, ResourceName = Permissions.MaintenanceTypeUpdate },
+                    new Resource { Id = 107, FeatureId = maintenanceTypeFeatureId, ResourceName = Permissions.MaintenanceTypeDelete },
+
+                    new Resource { Id = 108, FeatureId = maintenanceChecklistFeatureId, ResourceName = Permissions.MaintenanceChecklistView },
+                    new Resource { Id = 109, FeatureId = maintenanceChecklistFeatureId, ResourceName = Permissions.MaintenanceChecklistCreate },
+                    new Resource { Id = 110, FeatureId = maintenanceChecklistFeatureId, ResourceName = Permissions.MaintenanceChecklistUpdate },
+                    new Resource { Id = 111, FeatureId = maintenanceChecklistFeatureId, ResourceName = Permissions.MaintenanceChecklistDelete },
+
+                    new Resource { Id = 112, FeatureId = maintenanceScheduleFeatureId, ResourceName = Permissions.MaintenanceScheduleView },
+                    new Resource { Id = 113, FeatureId = maintenanceScheduleFeatureId, ResourceName = Permissions.MaintenanceScheduleCreate },
+                    new Resource { Id = 114, FeatureId = maintenanceScheduleFeatureId, ResourceName = Permissions.MaintenanceScheduleUpdate },
+                    new Resource { Id = 115, FeatureId = maintenanceScheduleFeatureId, ResourceName = Permissions.MaintenanceScheduleDelete },
+
+                    new Resource { Id = 116, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceView },
+                    new Resource { Id = 117, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceUpdate },
+                    new Resource { Id = 118, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceComplete },
+                    new Resource { Id = 119, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceGenerate }
 
                 });
 
