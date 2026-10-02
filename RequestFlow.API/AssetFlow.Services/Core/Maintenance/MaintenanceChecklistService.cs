@@ -31,6 +31,8 @@ namespace AssetFlow.Services.Core.Maintenance
             { response.AddError("Name and Code are required."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
             var tenantId = tenantResult.TenantId;
+            var relatedError = await ValidateMaintenanceTypeTenantAsync(tenantId, dto.MaintenanceTypeId);
+            if (relatedError != null) { response.AddError(relatedError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
             var code = dto.Code.Trim();
             if (await _context.MaintenanceChecklists.AnyAsync(x => x.TenantId == tenantId && x.Code == code))
             { response.AddError("Checklist code already exists."); response.StatusCode = HttpStatusCode.Conflict; return response; }
@@ -57,9 +59,13 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<MaintenanceChecklistDto>();
             var entity = await _context.MaintenanceChecklists.Include(x => x.Items).ThenInclude(i => i.Options).FirstOrDefaultAsync(x => x.Id == dto.Id);
             if (entity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, entity.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
 
             var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, dto.TenantId);
             if (!tenantResult.Ok) { response.AddError(tenantResult.Error); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+            var relatedError = await ValidateMaintenanceTypeTenantAsync(tenantResult.TenantId, dto.MaintenanceTypeId);
+            if (relatedError != null) { response.AddError(relatedError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
             var code = dto.Code.Trim();
             if (await _context.MaintenanceChecklists.AnyAsync(x => x.TenantId == tenantResult.TenantId && x.Code == code && x.Id != dto.Id))
             { response.AddError("Checklist code already exists."); response.StatusCode = HttpStatusCode.Conflict; return response; }
@@ -82,6 +88,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<MaintenanceChecklistDto>();
             var dto = await MapAsync(id);
             if (dto == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, dto.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             response.Result = dto;
             return response;
         }
@@ -132,11 +140,22 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<bool>();
             var entity = await _context.MaintenanceChecklists.FindAsync(id);
             if (entity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, entity.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             entity.IsDeleted = true;
             entity.IsActive = false;
             await _context.SaveChangesAsync();
             response.Result = true;
             return response;
+        }
+
+        private async Task<string?> ValidateMaintenanceTypeTenantAsync(int? tenantId, int? maintenanceTypeId)
+        {
+            if (!maintenanceTypeId.HasValue) return null;
+            var mt = await _context.MaintenanceTypes.FindAsync(maintenanceTypeId.Value);
+            if (mt == null || !mt.IsActive) return "Maintenance type not found or inactive.";
+            if (mt.TenantId != tenantId) return "Maintenance type does not belong to the selected tenant.";
+            return null;
         }
 
         private async Task UpsertItemsAsync(int checklistId, List<MaintenanceChecklistItemDto> items)

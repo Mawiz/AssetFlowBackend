@@ -51,6 +51,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<PreventiveMaintenanceOccurrenceDto>();
             var dto = await MapDetailAsync(id);
             if (dto == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, dto.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             response.Result = dto;
             return response;
         }
@@ -60,6 +62,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<PreventiveMaintenanceOccurrenceDto>();
             var occurrence = await _context.PreventiveMaintenanceOccurrences.FindAsync(id);
             if (occurrence == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var startAccess = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, occurrence.TenantId);
+            if (!startAccess.Ok) { response.AddError(startAccess.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             if (occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Completed
                 || occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Cancelled)
             { response.AddError("Occurrence cannot be started."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
@@ -82,6 +86,8 @@ namespace AssetFlow.Services.Core.Maintenance
                     .Include(x => x.ChecklistItems)
                     .FirstOrDefaultAsync(x => x.Id == dto.OccurrenceId);
                 if (occurrence == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+                var completeAccess = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, occurrence.TenantId);
+                if (!completeAccess.Ok) { response.AddError(completeAccess.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
                 if (occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Completed)
                 { response.AddError("Already completed."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
                 if (occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Cancelled)
@@ -157,6 +163,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<PreventiveMaintenanceOccurrenceDto>();
             var occurrence = await _context.PreventiveMaintenanceOccurrences.FindAsync(id);
             if (occurrence == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var cancelAccess = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, occurrence.TenantId);
+            if (!cancelAccess.Ok) { response.AddError(cancelAccess.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             if (occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Completed)
             { response.AddError("Completed occurrence cannot be cancelled."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
             occurrence.Status = (int)Enums.PreventiveMaintenanceOccurrenceStatus.Cancelled;
@@ -187,6 +195,16 @@ namespace AssetFlow.Services.Core.Maintenance
         public async Task<ResponseDto<AssetPreventiveMaintenanceSummaryDto>> GetAssetSummaryAsync(int assetId)
         {
             var response = new ResponseDto<AssetPreventiveMaintenanceSummaryDto> { Result = new AssetPreventiveMaintenanceSummaryDto() };
+            var asset = await _context.Assets.FindAsync(assetId);
+            if (asset == null)
+            {
+                response.AddError("Asset not found.");
+                response.StatusCode = HttpStatusCode.NotFound;
+                return response;
+            }
+            var assetAccess = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, asset.TenantId);
+            if (!assetAccess.Ok) { response.AddError(assetAccess.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
+
             var schedules = await _context.MaintenanceSchedules
                 .Include(x => x.Asset).ThenInclude(a => a.Location)
                 .Include(x => x.MaintenanceType)

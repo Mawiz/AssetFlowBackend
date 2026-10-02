@@ -55,6 +55,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<MaintenanceTypeDto>();
             var entity = await _context.MaintenanceTypes.FindAsync(dto.Id);
             if (entity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, entity.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, dto.TenantId);
             if (!tenantResult.Ok) { response.AddError(tenantResult.Error); response.StatusCode = HttpStatusCode.BadRequest; return response; }
             var code = dto.Code.Trim();
@@ -77,6 +79,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<MaintenanceTypeDto>();
             var dto = await MapAsync(id);
             if (dto == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, dto.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             response.Result = dto;
             return response;
         }
@@ -131,6 +135,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<bool>();
             var entity = await _context.MaintenanceTypes.FindAsync(id);
             if (entity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, entity.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             entity.IsDeleted = true;
             entity.IsActive = false;
             await _context.SaveChangesAsync();

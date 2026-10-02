@@ -36,8 +36,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var tenantResult = TenantScopeHelper.ResolveWriteTenantId(_tenantProvider, dto.TenantId);
             if (!tenantResult.Ok) { response.AddError(tenantResult.Error); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
-            var asset = await _context.Assets.FindAsync(dto.AssetId);
-            if (asset == null || !asset.IsActive) { response.AddError("Asset not found or inactive."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+            var relatedError = await ValidateRelatedTenantsAsync(tenantResult.TenantId, dto.AssetId, dto.MaintenanceTypeId, dto.MaintenanceChecklistId);
+            if (relatedError != null) { response.AddError(relatedError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
             var entity = MapToEntity(new MaintenanceSchedule(), dto, tenantResult.TenantId);
             entity.NextDueDate = RecurrenceCalculator.CalculateFirstDueDate(dto.StartDate, dto.RecurrenceType, dto.IntervalValue, dto.DayOfWeek);
@@ -65,9 +65,14 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<MaintenanceScheduleDto>();
             var entity = await _context.MaintenanceSchedules.FindAsync(dto.Id);
             if (entity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, entity.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
 
             var err = await ValidateAsync(dto);
             if (err != null) { response.AddError(err); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+
+            var relatedError = await ValidateRelatedTenantsAsync(entity.TenantId, dto.AssetId, dto.MaintenanceTypeId, dto.MaintenanceChecklistId);
+            if (relatedError != null) { response.AddError(relatedError); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
             var recurrenceChanged = entity.RecurrenceType != dto.RecurrenceType
                 || entity.IntervalValue != dto.IntervalValue
@@ -94,6 +99,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<MaintenanceScheduleDto>();
             var dto = await MapAsync(id);
             if (dto == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, dto.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             response.Result = dto;
             return response;
         }
@@ -157,6 +164,8 @@ namespace AssetFlow.Services.Core.Maintenance
             var response = new ResponseDto<bool>();
             var entity = await _context.MaintenanceSchedules.FindAsync(id);
             if (entity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, entity.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
             entity.IsActive = isActive;
             if (!isActive) await _generationService.CancelFutureOpenOccurrencesAsync(id);
             else await _generationService.GenerateAsync(new GeneratePreventiveMaintenanceDto { TenantId = entity.TenantId, MaintenanceScheduleId = id });
@@ -193,6 +202,24 @@ namespace AssetFlow.Services.Core.Maintenance
             if (dto.RecurrenceType == (int)AssetFlow.Common.Enum.Enums.MaintenanceRecurrenceType.Weekly && !dto.DayOfWeek.HasValue)
                 return Task.FromResult<string?>("Day of week is required for weekly schedules.");
             return Task.FromResult<string?>(null);
+        }
+
+        private async Task<string?> ValidateRelatedTenantsAsync(int? tenantId, int assetId, int maintenanceTypeId, int? maintenanceChecklistId)
+        {
+            if (!tenantId.HasValue) return "Tenant is required.";
+            var asset = await _context.Assets.FindAsync(assetId);
+            if (asset == null || !asset.IsActive) return "Asset not found or inactive.";
+            if (asset.TenantId != tenantId) return "Asset does not belong to the selected tenant.";
+            var mt = await _context.MaintenanceTypes.FindAsync(maintenanceTypeId);
+            if (mt == null || !mt.IsActive) return "Maintenance type not found or inactive.";
+            if (mt.TenantId != tenantId) return "Maintenance type does not belong to the selected tenant.";
+            if (maintenanceChecklistId.HasValue)
+            {
+                var cl = await _context.MaintenanceChecklists.FindAsync(maintenanceChecklistId.Value);
+                if (cl == null || !cl.IsActive) return "Checklist not found or inactive.";
+                if (cl.TenantId != tenantId) return "Checklist does not belong to the selected tenant.";
+            }
+            return null;
         }
 
         private async Task<MaintenanceScheduleDto?> MapAsync(int id) =>

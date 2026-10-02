@@ -49,5 +49,22 @@ namespace AssetFlow.Services.Core
 
             return query;
         }
+
+        /// <summary>
+        /// Tenant users may only access entities in their tenant. System admin may access any tenant.
+        /// </summary>
+        public static (bool Ok, string Error) EnsureEntityTenantAccess(
+            ITenantProvider tenantProvider,
+            int? entityTenantId)
+        {
+            var contextTenantId = GetContextTenantId(tenantProvider);
+            if (!contextTenantId.HasValue)
+                return (true, string.Empty);
+
+            if (entityTenantId != contextTenantId)
+                return (false, "Access denied.");
+
+            return (true, string.Empty);
+        }
     }
 }
