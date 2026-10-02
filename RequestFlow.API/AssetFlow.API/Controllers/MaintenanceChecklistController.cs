@@ -16,7 +16,7 @@ namespace AssetFlow.API.Controllers
 
         [HttpPost]
         [RequirePermission(Permissions.MaintenanceChecklistCreate)]
-        public async Task<IActionResult> Create(SaveMaintenanceChecklistDto dto)
+        public async Task<IActionResult> Create([FromBody] SaveMaintenanceChecklistDto dto)
         {
             var response = await _service.CreateAsync(dto);
             return StatusCode((int)response.StatusCode, response);
@@ -24,7 +24,7 @@ namespace AssetFlow.API.Controllers
 
         [HttpPut]
         [RequirePermission(Permissions.MaintenanceChecklistUpdate)]
-        public async Task<IActionResult> Update(UpdateMaintenanceChecklistDto dto)
+        public async Task<IActionResult> Update([FromBody] UpdateMaintenanceChecklistDto dto)
         {
             var response = await _service.UpdateAsync(dto);
             return StatusCode((int)response.StatusCode, response);
