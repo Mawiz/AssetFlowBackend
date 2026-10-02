@@ -9,6 +9,7 @@ using AssetFlow.Data.Entities.Configurations;
 using AssetFlow.Data.Entities.Asset;
 using AssetFlow.Data.Entities.SparePart;
 using AssetFlow.Data.Entities.Maintenance;
+using AssetFlow.Data.Entities.Issue;
 using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
@@ -80,6 +81,12 @@ namespace AssetFlow.Data.Data
         public DbSet<PreventiveMaintenanceOccurrenceChecklistItem> PreventiveMaintenanceOccurrenceChecklistItems { get; set; }
         public DbSet<PreventiveMaintenanceChecklistResponse> PreventiveMaintenanceChecklistResponses { get; set; }
         #endregion Maintenance
+
+        #region Issue
+        public DbSet<IssueCategory> IssueCategories { get; set; }
+        public DbSet<AssetIssue> AssetIssues { get; set; }
+        public DbSet<IssueAttachment> IssueAttachments { get; set; }
+        #endregion Issue
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -338,6 +345,26 @@ namespace AssetFlow.Data.Data
                 e.HasIndex(x => x.OccurrenceChecklistItemId).IsUnique();
                 e.HasOne(x => x.Occurrence).WithMany().HasForeignKey(x => x.PreventiveMaintenanceOccurrenceId).OnDelete(DeleteBehavior.Cascade);
                 e.HasOne(x => x.OccurrenceChecklistItem).WithOne(x => x.Response).HasForeignKey<PreventiveMaintenanceChecklistResponse>(x => x.OccurrenceChecklistItemId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<IssueCategory>(e =>
+            {
+                e.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+            });
+
+            modelBuilder.Entity<AssetIssue>(e =>
+            {
+                e.HasIndex(x => new { x.TenantId, x.IssueNumber }).IsUnique();
+                e.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Location).WithMany().HasForeignKey(x => x.LocationId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.IssueCategory).WithMany().HasForeignKey(x => x.IssueCategoryId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.ReportedByUser).WithMany().HasForeignKey(x => x.ReportedByUserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.ResolvedByUser).WithMany().HasForeignKey(x => x.ResolvedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<IssueAttachment>(e =>
+            {
+                e.HasOne(x => x.AssetIssue).WithMany(x => x.Attachments).HasForeignKey(x => x.AssetIssueId).OnDelete(DeleteBehavior.Cascade);
             });
 
             Seed.Run(modelBuilder);

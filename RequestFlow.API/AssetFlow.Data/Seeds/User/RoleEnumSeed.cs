@@ -54,6 +54,8 @@ namespace AssetFlow.Data.Seeds.User
             const int maintenanceChecklistFeatureId = 101;
             const int maintenanceScheduleFeatureId = 102;
             const int preventiveMaintenanceFeatureId = 103;
+            const int issueCategoryFeatureId = 120;
+            const int assetIssueFeatureId = 121;
 
             modelBuilder.Entity<Resource>()
 
@@ -100,6 +102,8 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = maintenanceChecklistFeatureId, ResourceName = "MaintenanceChecklist" },
                     new Resource { Id = maintenanceScheduleFeatureId, ResourceName = "MaintenanceSchedule" },
                     new Resource { Id = preventiveMaintenanceFeatureId, ResourceName = "PreventiveMaintenance" },
+                    new Resource { Id = issueCategoryFeatureId, ResourceName = "IssueCategory" },
+                    new Resource { Id = assetIssueFeatureId, ResourceName = "AssetIssue" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -279,7 +283,17 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 116, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceView },
                     new Resource { Id = 117, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceUpdate },
                     new Resource { Id = 118, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceComplete },
-                    new Resource { Id = 119, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceGenerate }
+                    new Resource { Id = 119, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceGenerate },
+
+                    new Resource { Id = 128, FeatureId = issueCategoryFeatureId, ResourceName = Permissions.IssueCategoryView },
+                    new Resource { Id = 129, FeatureId = issueCategoryFeatureId, ResourceName = Permissions.IssueCategoryCreate },
+                    new Resource { Id = 130, FeatureId = issueCategoryFeatureId, ResourceName = Permissions.IssueCategoryUpdate },
+                    new Resource { Id = 131, FeatureId = issueCategoryFeatureId, ResourceName = Permissions.IssueCategoryDelete },
+
+                    new Resource { Id = 132, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueView },
+                    new Resource { Id = 133, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueCreate },
+                    new Resource { Id = 134, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueUpdate },
+                    new Resource { Id = 135, FeatureId = assetIssueFeatureId, ResourceName = Permissions.AssetIssueDelete }
 
                 });
 

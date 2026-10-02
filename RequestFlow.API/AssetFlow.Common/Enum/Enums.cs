@@ -127,5 +127,21 @@
             Overdue = 5,
             Cancelled = 6
         }
+
+        public enum IssuePriority
+        {
+            Critical = 1,
+            High = 2,
+            Medium = 3,
+            Low = 4
+        }
+
+        public enum IssueStatus
+        {
+            New = 1,
+            UnderReview = 2,
+            Resolved = 3,
+            Cancelled = 4
+        }
     }
 }

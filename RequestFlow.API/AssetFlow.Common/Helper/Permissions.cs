@@ -113,5 +113,15 @@ namespace AssetFlow.Common.Helper
         public const string PreventiveMaintenanceUpdate = "PreventiveMaintenance.Update";
         public const string PreventiveMaintenanceComplete = "PreventiveMaintenance.Complete";
         public const string PreventiveMaintenanceGenerate = "PreventiveMaintenance.Generate";
+
+        public const string IssueCategoryCreate = "IssueCategory.Create";
+        public const string IssueCategoryUpdate = "IssueCategory.Update";
+        public const string IssueCategoryView = "IssueCategory.View";
+        public const string IssueCategoryDelete = "IssueCategory.Delete";
+
+        public const string AssetIssueCreate = "AssetIssue.Create";
+        public const string AssetIssueUpdate = "AssetIssue.Update";
+        public const string AssetIssueView = "AssetIssue.View";
+        public const string AssetIssueDelete = "AssetIssue.Delete";
     }
 }
