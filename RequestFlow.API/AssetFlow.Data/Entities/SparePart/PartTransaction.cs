@@ -98,7 +98,11 @@ namespace AssetFlow.Data.Entities.SparePart
 
         public virtual Supplier Supplier { get; set; }
 
+        public int? WorkOrderId { get; set; }
 
+        public int? AssetId { get; set; }
+
+        public int? PartReplacementId { get; set; }
 
         public virtual ICollection<PartTransactionSerial> TransactionSerials { get; set; } = new List<PartTransactionSerial>();
 

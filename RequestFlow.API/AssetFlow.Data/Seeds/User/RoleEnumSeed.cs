@@ -57,6 +57,7 @@ namespace AssetFlow.Data.Seeds.User
             const int issueCategoryFeatureId = 120;
             const int assetIssueFeatureId = 121;
             const int workOrderFeatureId = 122;
+            const int partReplacementFeatureId = 123;
 
             modelBuilder.Entity<Resource>()
 
@@ -106,6 +107,7 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = issueCategoryFeatureId, ResourceName = "IssueCategory" },
                     new Resource { Id = assetIssueFeatureId, ResourceName = "AssetIssue" },
                     new Resource { Id = workOrderFeatureId, ResourceName = "WorkOrder" },
+                    new Resource { Id = partReplacementFeatureId, ResourceName = "PartReplacement" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -311,7 +313,13 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 147, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderApprove },
                     new Resource { Id = 148, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderReject },
                     new Resource { Id = 149, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderReopen },
-                    new Resource { Id = 150, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderCancel }
+                    new Resource { Id = 150, FeatureId = workOrderFeatureId, ResourceName = Permissions.WorkOrderCancel },
+
+                    new Resource { Id = 151, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementView },
+                    new Resource { Id = 152, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementCreate },
+                    new Resource { Id = 153, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementValidate },
+                    new Resource { Id = 154, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementReplace },
+                    new Resource { Id = 155, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementDelete }
 
                 });
 

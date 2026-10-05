@@ -139,5 +139,11 @@ namespace AssetFlow.Common.Helper
         public const string WorkOrderReject = "WorkOrder.Reject";
         public const string WorkOrderReopen = "WorkOrder.Reopen";
         public const string WorkOrderCancel = "WorkOrder.Cancel";
+
+        public const string PartReplacementView = "PartReplacement.View";
+        public const string PartReplacementCreate = "PartReplacement.Create";
+        public const string PartReplacementValidate = "PartReplacement.Validate";
+        public const string PartReplacementReplace = "PartReplacement.Replace";
+        public const string PartReplacementDelete = "PartReplacement.Delete";
     }
 }

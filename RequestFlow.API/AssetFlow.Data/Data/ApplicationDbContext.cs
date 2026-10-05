@@ -70,6 +70,7 @@ namespace AssetFlow.Data.Data
         public DbSet<PartInventoryBatch> PartInventoryBatches { get; set; }
         public DbSet<PartTransaction> PartTransactions { get; set; }
         public DbSet<PartTransactionSerial> PartTransactionSerials { get; set; }
+        public DbSet<PartReplacement> PartReplacements { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         #endregion SparePart
 
@@ -295,6 +296,20 @@ namespace AssetFlow.Data.Data
             {
                 pts.HasOne(x => x.PartTransaction).WithMany(x => x.TransactionSerials).HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Cascade);
                 pts.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PartReplacement>(pr =>
+            {
+                pr.HasIndex(x => x.WorkOrderId);
+                pr.HasIndex(x => x.AssetId);
+                pr.HasIndex(x => x.TenantId);
+                pr.HasOne(x => x.WorkOrder).WithMany().HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Restrict);
+                pr.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+                pr.HasOne(x => x.OldAssetComponent).WithMany().HasForeignKey(x => x.OldAssetComponentId).OnDelete(DeleteBehavior.Restrict);
+                pr.HasOne(x => x.NewAssetComponent).WithMany().HasForeignKey(x => x.NewAssetComponentId).OnDelete(DeleteBehavior.Restrict);
+                pr.HasOne(x => x.NewPart).WithMany().HasForeignKey(x => x.NewPartId).OnDelete(DeleteBehavior.Restrict);
+                pr.HasOne(x => x.NewPartSerialNumber).WithMany().HasForeignKey(x => x.NewPartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+                pr.HasOne(x => x.PartTransaction).WithMany().HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<MaintenanceType>(e =>
