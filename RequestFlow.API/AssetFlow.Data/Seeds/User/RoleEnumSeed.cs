@@ -60,6 +60,8 @@ namespace AssetFlow.Data.Seeds.User
             const int partReplacementFeatureId = 123;
             const int assetHistoryFeatureId = 124;
             const int costManagementFeatureId = 125;
+            const int dashboardFeatureId = 126;
+            const int reportsFeatureId = 127;
 
             modelBuilder.Entity<Resource>()
 
@@ -112,6 +114,8 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = partReplacementFeatureId, ResourceName = "PartReplacement" },
                     new Resource { Id = assetHistoryFeatureId, ResourceName = "AssetHistory" },
                     new Resource { Id = costManagementFeatureId, ResourceName = "CostManagement" },
+                    new Resource { Id = dashboardFeatureId, ResourceName = "Dashboard" },
+                    new Resource { Id = reportsFeatureId, ResourceName = "Reports" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -329,7 +333,10 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 157, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementView },
                     new Resource { Id = 158, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementCreate },
                     new Resource { Id = 159, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementUpdate },
-                    new Resource { Id = 160, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementDelete }
+                    new Resource { Id = 160, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementDelete },
+
+                    new Resource { Id = 161, FeatureId = dashboardFeatureId, ResourceName = Permissions.DashboardView },
+                    new Resource { Id = 162, FeatureId = reportsFeatureId, ResourceName = Permissions.ReportsView }
 
                 });
 

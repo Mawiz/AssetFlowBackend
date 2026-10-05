@@ -151,5 +151,8 @@ namespace AssetFlow.Common.Helper
         public const string CostManagementCreate = "CostManagement.Create";
         public const string CostManagementUpdate = "CostManagement.Update";
         public const string CostManagementDelete = "CostManagement.Delete";
+
+        public const string DashboardView = "Dashboard.View";
+        public const string ReportsView = "Reports.View";
     }
 }
