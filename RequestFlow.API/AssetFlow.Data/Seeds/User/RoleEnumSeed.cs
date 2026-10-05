@@ -58,6 +58,8 @@ namespace AssetFlow.Data.Seeds.User
             const int assetIssueFeatureId = 121;
             const int workOrderFeatureId = 122;
             const int partReplacementFeatureId = 123;
+            const int assetHistoryFeatureId = 124;
+            const int costManagementFeatureId = 125;
 
             modelBuilder.Entity<Resource>()
 
@@ -108,6 +110,8 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = assetIssueFeatureId, ResourceName = "AssetIssue" },
                     new Resource { Id = workOrderFeatureId, ResourceName = "WorkOrder" },
                     new Resource { Id = partReplacementFeatureId, ResourceName = "PartReplacement" },
+                    new Resource { Id = assetHistoryFeatureId, ResourceName = "AssetHistory" },
+                    new Resource { Id = costManagementFeatureId, ResourceName = "CostManagement" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -319,7 +323,13 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 152, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementCreate },
                     new Resource { Id = 153, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementValidate },
                     new Resource { Id = 154, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementReplace },
-                    new Resource { Id = 155, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementDelete }
+                    new Resource { Id = 155, FeatureId = partReplacementFeatureId, ResourceName = Permissions.PartReplacementDelete },
+
+                    new Resource { Id = 156, FeatureId = assetHistoryFeatureId, ResourceName = Permissions.AssetHistoryView },
+                    new Resource { Id = 157, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementView },
+                    new Resource { Id = 158, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementCreate },
+                    new Resource { Id = 159, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementUpdate },
+                    new Resource { Id = 160, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementDelete }
 
                 });
 

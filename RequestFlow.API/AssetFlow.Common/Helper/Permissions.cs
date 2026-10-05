@@ -145,5 +145,11 @@ namespace AssetFlow.Common.Helper
         public const string PartReplacementValidate = "PartReplacement.Validate";
         public const string PartReplacementReplace = "PartReplacement.Replace";
         public const string PartReplacementDelete = "PartReplacement.Delete";
+
+        public const string AssetHistoryView = "AssetHistory.View";
+        public const string CostManagementView = "CostManagement.View";
+        public const string CostManagementCreate = "CostManagement.Create";
+        public const string CostManagementUpdate = "CostManagement.Update";
+        public const string CostManagementDelete = "CostManagement.Delete";
     }
 }

@@ -150,6 +150,28 @@
             PreventiveMaintenance = 2
         }
 
+        public enum MaintenanceCostType
+        {
+            Labor = 1,
+            Parts = 2,
+            ExternalService = 3,
+            Other = 4
+        }
+
+        public enum AssetHistoryEventType
+        {
+            AssetCreated = 1,
+            ComponentInstalled = 2,
+            ComponentRemoved = 3,
+            PreventiveMaintenance = 4,
+            BreakdownIssue = 5,
+            WorkOrderCreated = 6,
+            WorkOrderStatusChange = 7,
+            PartReplaced = 8,
+            CostRecorded = 9,
+            Downtime = 10
+        }
+
         public enum WorkOrderStatus
         {
             New = 1,

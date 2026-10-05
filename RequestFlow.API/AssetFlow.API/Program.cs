@@ -147,6 +147,8 @@ builder.Services.AddTransient<IIssueCategoryService, IssueCategoryService>();
 builder.Services.AddTransient<IAssetIssueService, AssetIssueService>();
 builder.Services.AddTransient<IWorkOrderService, WorkOrderService>();
 builder.Services.AddTransient<IPartReplacementService, PartReplacementService>();
+builder.Services.AddTransient<IAssetHistoryService, AssetFlow.Services.Core.History.AssetHistoryService>();
+builder.Services.AddTransient<IMaintenanceCostService, AssetFlow.Services.Core.History.MaintenanceCostService>();
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

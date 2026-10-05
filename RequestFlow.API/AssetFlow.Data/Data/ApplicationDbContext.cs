@@ -12,6 +12,7 @@ using AssetFlow.Data.Entities.Maintenance;
 using AssetFlow.Data.Entities.Issue;
 using WorkOrderEntity = AssetFlow.Data.Entities.WorkOrder.WorkOrder;
 using AssetFlow.Data.Entities.WorkOrder;
+using AssetFlow.Data.Entities.History;
 using AssetFlow.Data.Entities.Location;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
@@ -98,6 +99,11 @@ namespace AssetFlow.Data.Data
         public DbSet<WorkOrderAssignmentHistory> WorkOrderAssignmentHistories { get; set; }
         public DbSet<WorkOrderAttachment> WorkOrderAttachments { get; set; }
         #endregion WorkOrder
+
+        #region History
+        public DbSet<MaintenanceCostRecord> MaintenanceCostRecords { get; set; }
+        public DbSet<WorkOrderLaborRecord> WorkOrderLaborRecords { get; set; }
+        #endregion History
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -296,6 +302,26 @@ namespace AssetFlow.Data.Data
             {
                 pts.HasOne(x => x.PartTransaction).WithMany(x => x.TransactionSerials).HasForeignKey(x => x.PartTransactionId).OnDelete(DeleteBehavior.Cascade);
                 pts.HasOne(x => x.PartSerialNumber).WithMany().HasForeignKey(x => x.PartSerialNumberId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<MaintenanceCostRecord>(e =>
+            {
+                e.HasIndex(x => x.TenantId);
+                e.HasIndex(x => x.AssetId);
+                e.HasIndex(x => x.WorkOrderId);
+                e.HasIndex(x => x.CostDate);
+                e.Property(x => x.Amount).HasPrecision(18, 2);
+                e.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.WorkOrder).WithMany().HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<WorkOrderLaborRecord>(e =>
+            {
+                e.HasIndex(x => x.TenantId);
+                e.HasIndex(x => x.WorkOrderId);
+                e.Property(x => x.LaborCost).HasPrecision(18, 2);
+                e.Property(x => x.HourlyRate).HasPrecision(18, 2);
+                e.HasOne(x => x.WorkOrder).WithMany().HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PartReplacement>(pr =>
