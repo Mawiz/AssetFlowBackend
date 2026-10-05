@@ -8,6 +8,8 @@ using AssetFlow.Data.Entities;
 
 using AssetFlow.Data.Entities.Asset;
 
+using AssetFlow.Data.Entities.SparePart;
+
 using AssetFlow.Data.Entities.Tenant;
 
 using AssetFlow.Data.Identity;
@@ -514,7 +516,47 @@ namespace AssetFlow.Services.Core
 
                     break;
 
+                case "AssetComponent":
 
+                    if (!model.ParentId.HasValue)
+
+                    {
+
+                        response.AddError("ParentId (asset) is required for AssetComponent.");
+
+                        response.StatusCode = HttpStatusCode.BadRequest;
+
+                        return response;
+
+                    }
+
+                    response.Result = await GetAssetComponentsForMetadataAsync(tenantId, model.ParentId.Value);
+
+                    break;
+
+                case "Part":
+
+                    response.Result = await GetPartsForMetadataAsync(tenantId, model.SearchText);
+
+                    break;
+
+                case "PartInventoryBatch":
+
+                    if (!model.ParentId.HasValue)
+
+                    {
+
+                        response.AddError("ParentId (part) is required for PartInventoryBatch.");
+
+                        response.StatusCode = HttpStatusCode.BadRequest;
+
+                        return response;
+
+                    }
+
+                    response.Result = await GetPartInventoryBatchesForMetadataAsync(tenantId, model.ParentId.Value);
+
+                    break;
 
                 default:
 
@@ -911,6 +953,166 @@ namespace AssetFlow.Services.Core
         }
 
 
+
+        private async Task<List<MetaDataByTypeItemDto>> GetAssetComponentsForMetadataAsync(int? tenantId, int assetId)
+
+        {
+
+            IQueryable<AssetComponent> query = appDbContext.AssetComponents
+
+                .Where(c => c.IsActive && c.AssetId == assetId);
+
+            if (tenantId.HasValue)
+
+                query = query.Where(c => c.TenantId == tenantId);
+
+            var rows = await query
+
+                .OrderBy(c => c.ComponentName)
+
+                .Select(c => new
+
+                {
+
+                    c.Id,
+
+                    c.ComponentName,
+
+                    c.PartNumber,
+
+                    c.SerialNumber,
+
+                    c.TenantId,
+
+                    c.AssetId
+
+                })
+
+                .ToListAsync();
+
+            return rows.Select(c =>
+
+            {
+
+                var partNum = c.PartNumber?.Trim() ?? string.Empty;
+
+                var serial = c.SerialNumber?.Trim() ?? string.Empty;
+
+                var pnDisplay = string.IsNullOrEmpty(partNum) ? "—" : partNum;
+
+                var label = $"{c.ComponentName} ({pnDisplay})" + (string.IsNullOrEmpty(serial) ? "" : $" · {serial}");
+
+                return new MetaDataByTypeItemDto
+
+                {
+
+                    Id = c.Id,
+
+                    Name = c.ComponentName,
+
+                    DisplayName = label,
+
+                    Code = partNum,
+
+                    ParentId = c.AssetId,
+
+                    TenantId = c.TenantId,
+
+                    HasChildren = false
+
+                };
+
+            }).ToList();
+
+        }
+
+        private async Task<List<MetaDataByTypeItemDto>> GetPartsForMetadataAsync(int? tenantId, string searchText)
+
+        {
+
+            if (string.IsNullOrWhiteSpace(searchText))
+
+                return new List<MetaDataByTypeItemDto>();
+
+            var pn = searchText.Trim();
+
+            IQueryable<Part> query = appDbContext.Parts.Where(p => p.IsActive && p.PartNumber.ToLower() == pn.ToLower());
+
+            if (tenantId.HasValue)
+
+                query = query.Where(p => p.TenantId == tenantId);
+
+            return await query
+
+                .OrderBy(p => p.PartName)
+
+                .Take(20)
+
+                .Select(p => new MetaDataByTypeItemDto
+
+                {
+
+                    Id = p.Id,
+
+                    Name = p.PartNumber,
+
+                    DisplayName = p.PartName,
+
+                    Code = p.PartNumber,
+
+                    IsSerialized = p.IsSerialized,
+
+                    TenantId = p.TenantId,
+
+                    HasChildren = false
+
+                })
+
+                .ToListAsync();
+
+        }
+
+        private async Task<List<MetaDataByTypeItemDto>> GetPartInventoryBatchesForMetadataAsync(int? tenantId, int partId)
+
+        {
+
+            IQueryable<PartInventoryBatch> query = appDbContext.PartInventoryBatches
+
+                .Where(b => b.IsActive && b.PartId == partId && b.AvailableQuantity > 0);
+
+            if (tenantId.HasValue)
+
+                query = query.Where(b => b.TenantId == tenantId);
+
+            return await query
+
+                .OrderByDescending(b => b.ReceivedDate)
+
+                .Take(50)
+
+                .Select(b => new MetaDataByTypeItemDto
+
+                {
+
+                    Id = b.Id,
+
+                    Name = b.BatchReference ?? ("Batch-" + b.Id),
+
+                    DisplayName = (b.BatchReference ?? ("Batch #" + b.Id)) + " — avail " + b.AvailableQuantity,
+
+                    AvailableQuantity = b.AvailableQuantity,
+
+                    ParentId = b.PartId,
+
+                    TenantId = b.TenantId,
+
+                    HasChildren = false
+
+                })
+
+                .ToListAsync();
+
+        }
 
         private async Task<List<MetaDataByTypeItemDto>> GetUsersAsync(int? tenantId)
 

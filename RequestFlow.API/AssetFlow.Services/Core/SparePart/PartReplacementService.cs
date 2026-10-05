@@ -136,7 +136,9 @@ namespace AssetFlow.Services.Core.SparePart
                     stock.TotalQuantity -= qty;
                 }
 
-                oldComp!.CurrentStatus = (int)Enums.ComponentCurrentStatus.Removed;
+                var installedComponentCode = (oldComp!.ComponentCode ?? string.Empty).Trim();
+                oldComp.ComponentCode = UniqueRemovedComponentCode(installedComponentCode, oldComp.Id);
+                oldComp.CurrentStatus = (int)Enums.ComponentCurrentStatus.Removed;
                 oldComp.IsActive = false;
                 oldComp.Notes = AppendNote(oldComp.Notes, $"Removed via WO {wo!.WorkOrderNumber}: {dto.FailureReason}");
 
@@ -152,7 +154,7 @@ namespace AssetFlow.Services.Core.SparePart
                 {
                     TenantId = wo.TenantId,
                     AssetId = wo.AssetId,
-                    ComponentCode = oldComp.ComponentCode,
+                    ComponentCode = installedComponentCode,
                     ComponentName = part.PartName,
                     PartNumber = part.PartNumber,
                     SerialNumber = newSerial?.SerialNumber ?? string.Empty,
@@ -546,6 +548,20 @@ namespace AssetFlow.Services.Core.SparePart
         {
             if (string.IsNullOrWhiteSpace(existing)) return line;
             return existing + Environment.NewLine + line;
+        }
+
+        /// <summary>Free (TenantId, ComponentCode) unique index when the removed row stays in the table.</summary>
+        private static string UniqueRemovedComponentCode(string code, int componentId)
+        {
+            const int maxLen = 50;
+            var suffix = $"-R{componentId}";
+            if (string.IsNullOrEmpty(code))
+                return suffix.Length > maxLen ? suffix[..maxLen] : suffix;
+            var maxBase = maxLen - suffix.Length;
+            if (maxBase < 1)
+                return suffix.Length > maxLen ? suffix[..maxLen] : suffix;
+            var baseCode = code.Length > maxBase ? code[..maxBase] : code;
+            return baseCode + suffix;
         }
     }
 }

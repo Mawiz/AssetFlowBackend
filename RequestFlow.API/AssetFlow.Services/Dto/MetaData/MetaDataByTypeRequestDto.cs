@@ -12,5 +12,8 @@ namespace AssetFlow.Services.Dto.MetaData
 
         /// <summary>Optional filter when Type is Location — restrict to a location type level.</summary>
         public int? LocationTypeId { get; set; }
+
+        /// <summary>Optional filter when Type is Part — part number (exact, case-insensitive).</summary>
+        public string? SearchText { get; set; }
     }
 }

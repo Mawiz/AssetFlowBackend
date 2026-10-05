@@ -9,5 +9,12 @@ namespace AssetFlow.Services.Dto.MetaData
         public int? ParentId { get; set; }
         public int? LocationTypeId { get; set; }
         public int? TenantId { get; set; }
+
+        /// <summary>e.g. part number on asset components.</summary>
+        public string Code { get; set; }
+
+        public bool? IsSerialized { get; set; }
+
+        public decimal? AvailableQuantity { get; set; }
     }
 }
