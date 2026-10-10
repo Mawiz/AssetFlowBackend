@@ -18,6 +18,7 @@ using AssetFlow.Services.Core;
 using AssetFlow.Services.Core.Maintenance;
 using AssetFlow.Services.Core.Issue;
 using AssetFlow.Services.Core.WorkOrder;
+using AssetFlow.Services.Core.Workflow;
 using AssetFlow.Services.Core.SparePart;
 using AssetFlow.Services.Dto.User;
 using AssetFlow.Services.DtoValidation.User;
@@ -150,6 +151,7 @@ builder.Services.AddTransient<IPartReplacementService, PartReplacementService>()
 builder.Services.AddTransient<IAssetHistoryService, AssetFlow.Services.Core.History.AssetHistoryService>();
 builder.Services.AddTransient<IMaintenanceCostService, AssetFlow.Services.Core.History.MaintenanceCostService>();
 builder.Services.AddTransient<IReportingService, AssetFlow.Services.Core.Reporting.ReportingService>();
+builder.Services.AddTransient<IWorkflowConfigurationService, WorkflowConfigurationService>();
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

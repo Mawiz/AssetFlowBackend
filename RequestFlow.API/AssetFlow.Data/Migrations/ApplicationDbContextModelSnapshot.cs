@@ -197,6 +197,11 @@ namespace AssetFlow.Data.Migrations
                         },
                         new
                         {
+                            Id = 163,
+                            ResourceName = "WorkflowConfiguration"
+                        },
+                        new
+                        {
                             Id = 8,
                             FeatureId = 1,
                             ResourceName = "User.Create"
@@ -944,6 +949,30 @@ namespace AssetFlow.Data.Migrations
                             Id = 162,
                             FeatureId = 127,
                             ResourceName = "Reports.View"
+                        },
+                        new
+                        {
+                            Id = 164,
+                            FeatureId = 163,
+                            ResourceName = "WorkflowConfiguration.View"
+                        },
+                        new
+                        {
+                            Id = 165,
+                            FeatureId = 163,
+                            ResourceName = "WorkflowConfiguration.Create"
+                        },
+                        new
+                        {
+                            Id = 166,
+                            FeatureId = 163,
+                            ResourceName = "WorkflowConfiguration.Update"
+                        },
+                        new
+                        {
+                            Id = 167,
+                            FeatureId = 163,
+                            ResourceName = "WorkflowConfiguration.Delete"
                         });
                 });
 
@@ -4062,6 +4091,304 @@ namespace AssetFlow.Data.Migrations
                     b.ToTable("WorkOrderStatusHistories");
                 });
 
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowActionDefinition", b =>
+                {
+                    b.Property<int>("ActionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActionId"));
+
+                    b.Property<string>("AfterActionAr")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("AfterActionEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("BaseCssClass")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("BeforeActionAr")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("BeforeActionEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsNotesRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ActionId");
+
+                    b.ToTable("Actions", "Workflow");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModule", b =>
+                {
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModuleNameAr")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ModuleNameEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ModuleId");
+
+                    b.HasIndex("TenantId", "ModuleNameEn");
+
+                    b.ToTable("Modules", "Workflow");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", b =>
+                {
+                    b.Property<int>("StageId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AcknowledgementTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DueInHours")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EmailTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsClosingStage")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFinalApprover")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLogOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTATExtension")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SequenceNo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StageNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("StageNameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("StageId");
+
+                    b.HasIndex("ModuleId", "SequenceNo", "VersionNo");
+
+                    b.ToTable("ModuleStages", "Workflow");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowStageAction", b =>
+                {
+                    b.Property<int>("StageActionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AcknowledgementTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ActionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ActionPopUpRenderingComponents")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("AssigneeTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AssignmentValue")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CssClass")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("DisplayOrderNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EmailTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("NextSageId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SMSTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StageActionDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("StageActionDisplayNameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("StageActionId");
+
+                    b.HasIndex("ActionId");
+
+                    b.HasIndex("StageId", "DisplayOrderNo");
+
+                    b.ToTable("StagesActions", "Workflow");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowStageActionViewer", b =>
+                {
+                    b.Property<int>("StageActionViewerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StageActionViewerId"));
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViewerTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViewerValue")
+                        .HasColumnType("int");
+
+                    b.HasKey("StageActionViewerId");
+
+                    b.HasIndex("StageId", "ViewerTypeId", "ViewerValue")
+                        .IsUnique();
+
+                    b.ToTable("StageActionViewer", "Workflow");
+                });
+
             modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
                 {
                     b.Property<int>("Id")
@@ -5844,6 +6171,57 @@ namespace AssetFlow.Data.Migrations
                     b.Navigation("WorkOrder");
                 });
 
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModule", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Tenant.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowModule", "Module")
+                        .WithMany("Stages")
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Module");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowStageAction", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowActionDefinition", "Action")
+                        .WithMany("StageActions")
+                        .HasForeignKey("ActionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", "Stage")
+                        .WithMany("StageActions")
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Action");
+
+                    b.Navigation("Stage");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowStageActionViewer", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", "Stage")
+                        .WithMany("Viewers")
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stage");
+                });
+
             modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
                 {
                     b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
@@ -6054,6 +6432,23 @@ namespace AssetFlow.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowActionDefinition", b =>
+                {
+                    b.Navigation("StageActions");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModule", b =>
+                {
+                    b.Navigation("Stages");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", b =>
+                {
+                    b.Navigation("StageActions");
+
+                    b.Navigation("Viewers");
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>

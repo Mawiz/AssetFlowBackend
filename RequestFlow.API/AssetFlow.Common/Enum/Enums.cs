@@ -188,5 +188,12 @@
             Cancelled = 12,
             Closed = 13
         }
+
+        /// <summary>Role or user target for workflow stage action assignees and stage viewers.</summary>
+        public enum WorkflowPartyType
+        {
+            Role = 1,
+            User = 2
+        }
     }
 }

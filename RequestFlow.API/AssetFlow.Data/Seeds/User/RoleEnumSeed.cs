@@ -62,6 +62,7 @@ namespace AssetFlow.Data.Seeds.User
             const int costManagementFeatureId = 125;
             const int dashboardFeatureId = 126;
             const int reportsFeatureId = 127;
+            const int workflowConfigurationFeatureId = 163;
 
             modelBuilder.Entity<Resource>()
 
@@ -116,6 +117,7 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = costManagementFeatureId, ResourceName = "CostManagement" },
                     new Resource { Id = dashboardFeatureId, ResourceName = "Dashboard" },
                     new Resource { Id = reportsFeatureId, ResourceName = "Reports" },
+                    new Resource { Id = workflowConfigurationFeatureId, ResourceName = "WorkflowConfiguration" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -336,7 +338,12 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 160, FeatureId = costManagementFeatureId, ResourceName = Permissions.CostManagementDelete },
 
                     new Resource { Id = 161, FeatureId = dashboardFeatureId, ResourceName = Permissions.DashboardView },
-                    new Resource { Id = 162, FeatureId = reportsFeatureId, ResourceName = Permissions.ReportsView }
+                    new Resource { Id = 162, FeatureId = reportsFeatureId, ResourceName = Permissions.ReportsView },
+
+                    new Resource { Id = 164, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationView },
+                    new Resource { Id = 165, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationCreate },
+                    new Resource { Id = 166, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationUpdate },
+                    new Resource { Id = 167, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationDelete }
 
                 });
 

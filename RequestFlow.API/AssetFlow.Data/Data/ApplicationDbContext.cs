@@ -14,6 +14,7 @@ using WorkOrderEntity = AssetFlow.Data.Entities.WorkOrder.WorkOrder;
 using AssetFlow.Data.Entities.WorkOrder;
 using AssetFlow.Data.Entities.History;
 using AssetFlow.Data.Entities.Location;
+using AssetFlow.Data.Entities.Workflow;
 using AssetFlow.Data.Entities.Tenant;
 using AssetFlow.Data.Extensions;
 using AssetFlow.Data.Identity;
@@ -104,6 +105,14 @@ namespace AssetFlow.Data.Data
         public DbSet<MaintenanceCostRecord> MaintenanceCostRecords { get; set; }
         public DbSet<WorkOrderLaborRecord> WorkOrderLaborRecords { get; set; }
         #endregion History
+
+        #region Workflow
+        public DbSet<WorkflowModule> WorkflowModules { get; set; }
+        public DbSet<WorkflowModuleStage> WorkflowModuleStages { get; set; }
+        public DbSet<WorkflowActionDefinition> WorkflowActionDefinitions { get; set; }
+        public DbSet<WorkflowStageAction> WorkflowStageActions { get; set; }
+        public DbSet<WorkflowStageActionViewer> WorkflowStageActionViewers { get; set; }
+        #endregion Workflow
 
         #region Configurations
         public DbSet<NavigationItemEnum> NavigationItemEnums { get; set; }
@@ -459,6 +468,31 @@ namespace AssetFlow.Data.Data
             modelBuilder.Entity<WorkOrderAttachment>(e =>
             {
                 e.HasOne(x => x.WorkOrder).WithMany(x => x.Attachments).HasForeignKey(x => x.WorkOrderId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WorkflowModule>(e =>
+            {
+                e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.TenantId, x.ModuleNameEn });
+            });
+
+            modelBuilder.Entity<WorkflowModuleStage>(e =>
+            {
+                e.HasOne(x => x.Module).WithMany(x => x.Stages).HasForeignKey(x => x.ModuleId).OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => new { x.ModuleId, x.SequenceNo, x.VersionNo });
+            });
+
+            modelBuilder.Entity<WorkflowStageAction>(e =>
+            {
+                e.HasOne(x => x.Stage).WithMany(x => x.StageActions).HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Action).WithMany(x => x.StageActions).HasForeignKey(x => x.ActionId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.StageId, x.DisplayOrderNo });
+            });
+
+            modelBuilder.Entity<WorkflowStageActionViewer>(e =>
+            {
+                e.HasOne(x => x.Stage).WithMany(x => x.Viewers).HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => new { x.StageId, x.ViewerTypeId, x.ViewerValue }).IsUnique();
             });
 
             Seed.Run(modelBuilder);

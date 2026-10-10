@@ -154,5 +154,10 @@ namespace AssetFlow.Common.Helper
 
         public const string DashboardView = "Dashboard.View";
         public const string ReportsView = "Reports.View";
+
+        public const string WorkflowConfigurationView = "WorkflowConfiguration.View";
+        public const string WorkflowConfigurationCreate = "WorkflowConfiguration.Create";
+        public const string WorkflowConfigurationUpdate = "WorkflowConfiguration.Update";
+        public const string WorkflowConfigurationDelete = "WorkflowConfiguration.Delete";
     }
 }
