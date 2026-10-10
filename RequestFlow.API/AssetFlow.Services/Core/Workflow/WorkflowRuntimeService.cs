@@ -73,8 +73,6 @@ namespace AssetFlow.Services.Core.Workflow
             if (nextStage == null || nextStage.ModuleId != mapping.ModuleId)
                 return (false, "Initial stage action next stage is invalid for this module.");
 
-            var initialAssign = ResolveStageAssignment(initialStage);
-            if (!initialAssign.Ok) return (false, initialAssign.Error);
             var nextAssign = ResolveStageAssignment(nextStage);
             if (!nextAssign.Ok) return (false, nextAssign.Error);
 
@@ -93,7 +91,14 @@ namespace AssetFlow.Services.Core.Workflow
             };
             _context.WorkflowMasters.Add(master);
 
-            var initialTask = BuildTask(master.WorkflowMasterId, initialStage, initialAssign.AssigneeTypeId, initialAssign.AssignmentValue, now, submitByUserId);
+            // Initial stage does not require stage assignee: record creator on the completed initiation task.
+            var initialTask = BuildTask(
+                master.WorkflowMasterId,
+                initialStage,
+                (int)WorkflowPartyType.User,
+                submitByUserId,
+                now,
+                submitByUserId);
             initialTask.IsCompleted = true;
             initialTask.CompletedAt = now;
             initialTask.PerformedByUserId = submitByUserId;
