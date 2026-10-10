@@ -63,6 +63,7 @@ namespace AssetFlow.Data.Seeds.User
             const int dashboardFeatureId = 126;
             const int reportsFeatureId = 127;
             const int workflowConfigurationFeatureId = 163;
+            const int workflowRuntimeFeatureId = 168;
 
             modelBuilder.Entity<Resource>()
 
@@ -118,6 +119,7 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = dashboardFeatureId, ResourceName = "Dashboard" },
                     new Resource { Id = reportsFeatureId, ResourceName = "Reports" },
                     new Resource { Id = workflowConfigurationFeatureId, ResourceName = "WorkflowConfiguration" },
+                    new Resource { Id = workflowRuntimeFeatureId, ResourceName = "WorkflowRuntime" },
 
                     new Resource { Id = 8, FeatureId = userFeatureId, ResourceName = Permissions.UserCreate },
 
@@ -343,7 +345,14 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 164, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationView },
                     new Resource { Id = 165, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationCreate },
                     new Resource { Id = 166, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationUpdate },
-                    new Resource { Id = 167, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationDelete }
+                    new Resource { Id = 167, FeatureId = workflowConfigurationFeatureId, ResourceName = Permissions.WorkflowConfigurationDelete },
+
+                    new Resource { Id = 169, FeatureId = workflowRuntimeFeatureId, ResourceName = Permissions.WorkflowModuleItemMappingView },
+                    new Resource { Id = 170, FeatureId = workflowRuntimeFeatureId, ResourceName = Permissions.WorkflowModuleItemMappingCreate },
+                    new Resource { Id = 171, FeatureId = workflowRuntimeFeatureId, ResourceName = Permissions.WorkflowModuleItemMappingUpdate },
+                    new Resource { Id = 172, FeatureId = workflowRuntimeFeatureId, ResourceName = Permissions.WorkflowModuleItemMappingDelete },
+                    new Resource { Id = 173, FeatureId = workflowRuntimeFeatureId, ResourceName = Permissions.WorkflowRuntimeView },
+                    new Resource { Id = 174, FeatureId = workflowRuntimeFeatureId, ResourceName = Permissions.WorkflowRuntimePerform }
 
                 });
 

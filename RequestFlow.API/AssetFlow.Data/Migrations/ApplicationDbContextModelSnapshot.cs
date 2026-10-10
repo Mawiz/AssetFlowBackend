@@ -202,6 +202,11 @@ namespace AssetFlow.Data.Migrations
                         },
                         new
                         {
+                            Id = 168,
+                            ResourceName = "WorkflowRuntime"
+                        },
+                        new
+                        {
                             Id = 8,
                             FeatureId = 1,
                             ResourceName = "User.Create"
@@ -973,6 +978,42 @@ namespace AssetFlow.Data.Migrations
                             Id = 167,
                             FeatureId = 163,
                             ResourceName = "WorkflowConfiguration.Delete"
+                        },
+                        new
+                        {
+                            Id = 169,
+                            FeatureId = 168,
+                            ResourceName = "WorkflowModuleItemMapping.View"
+                        },
+                        new
+                        {
+                            Id = 170,
+                            FeatureId = 168,
+                            ResourceName = "WorkflowModuleItemMapping.Create"
+                        },
+                        new
+                        {
+                            Id = 171,
+                            FeatureId = 168,
+                            ResourceName = "WorkflowModuleItemMapping.Update"
+                        },
+                        new
+                        {
+                            Id = 172,
+                            FeatureId = 168,
+                            ResourceName = "WorkflowModuleItemMapping.Delete"
+                        },
+                        new
+                        {
+                            Id = 173,
+                            FeatureId = 168,
+                            ResourceName = "WorkflowRuntime.View"
+                        },
+                        new
+                        {
+                            Id = 174,
+                            FeatureId = 168,
+                            ResourceName = "WorkflowRuntime.Perform"
                         });
                 });
 
@@ -4150,6 +4191,64 @@ namespace AssetFlow.Data.Migrations
                     b.ToTable("Actions", "Workflow");
                 });
 
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowMaster", b =>
+                {
+                    b.Property<Guid>("WorkflowMasterId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CurrentStageId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReferenceItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceItemType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("SubmitBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("WorkflowMasterId");
+
+                    b.HasIndex("ModuleId");
+
+                    b.HasIndex("TenantId", "ReferenceItemType", "ReferenceItemId")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.ToTable("WorkflowMasters", "Workflow");
+                });
+
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModule", b =>
                 {
                     b.Property<int>("ModuleId")
@@ -4196,6 +4295,54 @@ namespace AssetFlow.Data.Migrations
                     b.HasIndex("TenantId", "ModuleNameEn");
 
                     b.ToTable("Modules", "Workflow");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleItemMapping", b =>
+                {
+                    b.Property<int>("ModuleItemMappingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ModuleItemMappingId"));
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceItemType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ModuleItemMappingId");
+
+                    b.HasIndex("ModuleId");
+
+                    b.HasIndex("TenantId", "ReferenceItemType")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.ToTable("ModuleItemMappings", "Workflow");
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", b =>
@@ -4396,6 +4543,81 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("StageActionViewer", "Workflow");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowTask", b =>
+                {
+                    b.Property<Guid>("WorkflowTaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("ActionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AssigneeTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AssignmentValue")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DueInHours")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ModuleStageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PerformedByRoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PerformedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StageActionId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("WorkflowMasterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("WorkflowTaskId");
+
+                    b.HasIndex("ModuleStageId");
+
+                    b.HasIndex("WorkflowMasterId", "IsCompleted");
+
+                    b.ToTable("WorkflowTasks", "Workflow");
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
@@ -6180,6 +6402,17 @@ namespace AssetFlow.Data.Migrations
                     b.Navigation("WorkOrder");
                 });
 
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowMaster", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowModule", "Module")
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Module");
+                });
+
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModule", b =>
                 {
                     b.HasOne("AssetFlow.Data.Entities.Tenant.Tenant", "Tenant")
@@ -6188,6 +6421,17 @@ namespace AssetFlow.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleItemMapping", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowModule", "Module")
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", b =>
@@ -6229,6 +6473,25 @@ namespace AssetFlow.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Stage");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowTask", b =>
+                {
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowModuleStage", "ModuleStage")
+                        .WithMany()
+                        .HasForeignKey("ModuleStageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AssetFlow.Data.Entities.Workflow.WorkflowMaster", "WorkflowMaster")
+                        .WithMany("Tasks")
+                        .HasForeignKey("WorkflowMasterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ModuleStage");
+
+                    b.Navigation("WorkflowMaster");
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Identity.ApplicationRole", b =>
@@ -6446,6 +6709,11 @@ namespace AssetFlow.Data.Migrations
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowActionDefinition", b =>
                 {
                     b.Navigation("StageActions");
+                });
+
+            modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowMaster", b =>
+                {
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowModule", b =>

@@ -112,6 +112,9 @@ namespace AssetFlow.Data.Data
         public DbSet<WorkflowActionDefinition> WorkflowActionDefinitions { get; set; }
         public DbSet<WorkflowStageAction> WorkflowStageActions { get; set; }
         public DbSet<WorkflowStageActionViewer> WorkflowStageActionViewers { get; set; }
+        public DbSet<WorkflowModuleItemMapping> WorkflowModuleItemMappings { get; set; }
+        public DbSet<WorkflowMaster> WorkflowMasters { get; set; }
+        public DbSet<WorkflowTask> WorkflowTasks { get; set; }
         #endregion Workflow
 
         #region Configurations
@@ -493,6 +496,33 @@ namespace AssetFlow.Data.Data
             {
                 e.HasOne(x => x.Stage).WithMany(x => x.Viewers).HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.StageId, x.ViewerTypeId, x.ViewerValue }).IsUnique();
+            });
+
+            modelBuilder.Entity<WorkflowModuleItemMapping>(e =>
+            {
+                e.ToTable("ModuleItemMappings", "Workflow");
+                e.HasKey(x => x.ModuleItemMappingId);
+                e.Property(x => x.ReferenceItemType).HasMaxLength(64);
+                e.HasOne(x => x.Module).WithMany().HasForeignKey(x => x.ModuleId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.TenantId, x.ReferenceItemType }).IsUnique();
+            });
+
+            modelBuilder.Entity<WorkflowMaster>(e =>
+            {
+                e.ToTable("WorkflowMasters", "Workflow");
+                e.HasKey(x => x.WorkflowMasterId);
+                e.Property(x => x.ReferenceItemType).HasMaxLength(64);
+                e.HasOne(x => x.Module).WithMany().HasForeignKey(x => x.ModuleId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.TenantId, x.ReferenceItemType, x.ReferenceItemId }).IsUnique();
+            });
+
+            modelBuilder.Entity<WorkflowTask>(e =>
+            {
+                e.ToTable("WorkflowTasks", "Workflow");
+                e.HasKey(x => x.WorkflowTaskId);
+                e.HasOne(x => x.WorkflowMaster).WithMany(x => x.Tasks).HasForeignKey(x => x.WorkflowMasterId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.ModuleStage).WithMany().HasForeignKey(x => x.ModuleStageId).HasPrincipalKey(s => s.StageId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.WorkflowMasterId, x.IsCompleted });
             });
 
             Seed.Run(modelBuilder);

@@ -195,5 +195,13 @@
             Role = 1,
             User = 2
         }
+
+        public enum WorkflowInboxCategory
+        {
+            Created = 1,
+            PendingWithMe = 2,
+            View = 3,
+            PerformedByMe = 4
+        }
     }
 }

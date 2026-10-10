@@ -2,7 +2,9 @@ using AssetFlow.Common.Enum;
 using AssetFlow.Data.Data;
 using AssetFlow.Data.Entities.Maintenance;
 using AssetFlow.Data.Provider;
+using AssetFlow.Common.Helper;
 using AssetFlow.Services.Contracts;
+using Microsoft.AspNetCore.Http;
 using AssetFlow.Services.Dto;
 using AssetFlow.Services.Dto.Maintenance;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +17,20 @@ namespace AssetFlow.Services.Core.Maintenance
     {
         private readonly ApplicationDbContext _context;
         private readonly ITenantProvider _tenantProvider;
+        private readonly IWorkflowRuntimeService _workflowRuntimeService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly List<PreventiveMaintenanceOccurrence> _occurrencesCreatedThisRun = new();
 
-        public PreventiveMaintenanceGenerationService(ApplicationDbContext context, ITenantProvider tenantProvider)
+        public PreventiveMaintenanceGenerationService(
+            ApplicationDbContext context,
+            ITenantProvider tenantProvider,
+            IWorkflowRuntimeService workflowRuntimeService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _tenantProvider = tenantProvider;
+            _workflowRuntimeService = workflowRuntimeService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ResponseDto<GeneratePreventiveMaintenanceResultDto>> GenerateAsync(GeneratePreventiveMaintenanceDto dto)
@@ -34,15 +45,51 @@ namespace AssetFlow.Services.Core.Maintenance
             query = query.Where(x => x.TenantId == tenantResult.TenantId);
             if (dto.MaintenanceScheduleId.HasValue) query = query.Where(x => x.Id == dto.MaintenanceScheduleId);
 
+            _occurrencesCreatedThisRun.Clear();
             var schedules = await query.ToListAsync();
-            foreach (var schedule in schedules)
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
             {
-                if (RecurrenceCalculator.IsMeterBased(schedule.RecurrenceType))
-                    response.Result.CreatedCount += await GenerateMeterOccurrenceAsync(schedule);
-                else
-                    response.Result.CreatedCount += await GenerateDateOccurrencesAsync(schedule, dto.HorizonDays);
+                foreach (var schedule in schedules)
+                {
+                    if (RecurrenceCalculator.IsMeterBased(schedule.RecurrenceType))
+                        response.Result.CreatedCount += await GenerateMeterOccurrenceAsync(schedule);
+                    else
+                        response.Result.CreatedCount += await GenerateDateOccurrencesAsync(schedule, dto.HorizonDays);
+                }
+                await _context.SaveChangesAsync();
+
+                var submitBy = UserHelper.GetCurrentUserId(_httpContextAccessor);
+                foreach (var occurrence in _occurrencesCreatedThisRun)
+                {
+                    var initiator = submitBy ?? occurrence.CreatedById;
+                    if (!initiator.HasValue || initiator.Value <= 0)
+                    {
+                        await tx.RollbackAsync();
+                        response.AddError("User context is required to start workflow for generated maintenance items.");
+                        response.StatusCode = HttpStatusCode.BadRequest;
+                        return response;
+                    }
+                    var (wfOk, wfError) = await _workflowRuntimeService.InitiateIfMappedAsync(
+                        occurrence.TenantId,
+                        WorkflowReferenceItemTypes.Maintenance,
+                        occurrence.Id,
+                        initiator.Value);
+                    if (!wfOk)
+                    {
+                        await tx.RollbackAsync();
+                        response.AddError(wfError ?? "Workflow initiation failed for a maintenance occurrence.");
+                        response.StatusCode = HttpStatusCode.BadRequest;
+                        return response;
+                    }
+                }
+                await tx.CommitAsync();
             }
-            await _context.SaveChangesAsync();
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
             return response;
         }
 
@@ -194,6 +241,7 @@ namespace AssetFlow.Services.Core.Maintenance
             }
 
             _context.PreventiveMaintenanceOccurrences.Add(occurrence);
+            _occurrencesCreatedThisRun.Add(occurrence);
             schedule.LastOccurrenceDate = scheduledDate ?? dueDate;
         }
     }

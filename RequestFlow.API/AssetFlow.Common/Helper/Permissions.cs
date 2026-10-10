@@ -159,5 +159,13 @@ namespace AssetFlow.Common.Helper
         public const string WorkflowConfigurationCreate = "WorkflowConfiguration.Create";
         public const string WorkflowConfigurationUpdate = "WorkflowConfiguration.Update";
         public const string WorkflowConfigurationDelete = "WorkflowConfiguration.Delete";
+
+        public const string WorkflowModuleItemMappingView = "WorkflowModuleItemMapping.View";
+        public const string WorkflowModuleItemMappingCreate = "WorkflowModuleItemMapping.Create";
+        public const string WorkflowModuleItemMappingUpdate = "WorkflowModuleItemMapping.Update";
+        public const string WorkflowModuleItemMappingDelete = "WorkflowModuleItemMapping.Delete";
+
+        public const string WorkflowRuntimeView = "WorkflowRuntime.View";
+        public const string WorkflowRuntimePerform = "WorkflowRuntime.Perform";
     }
 }

@@ -152,6 +152,8 @@ builder.Services.AddTransient<IAssetHistoryService, AssetFlow.Services.Core.Hist
 builder.Services.AddTransient<IMaintenanceCostService, AssetFlow.Services.Core.History.MaintenanceCostService>();
 builder.Services.AddTransient<IReportingService, AssetFlow.Services.Core.Reporting.ReportingService>();
 builder.Services.AddTransient<IWorkflowConfigurationService, WorkflowConfigurationService>();
+builder.Services.AddTransient<IWorkflowModuleItemMappingService, WorkflowModuleItemMappingService>();
+builder.Services.AddTransient<IWorkflowRuntimeService, WorkflowRuntimeService>();
 builder.Services.AddTransient<ITenantProvider, TenantProvider>();
 
 builder.Services.AddMvc(options =>

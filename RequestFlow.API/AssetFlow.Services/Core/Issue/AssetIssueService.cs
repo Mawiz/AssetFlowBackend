@@ -21,17 +21,20 @@ namespace AssetFlow.Services.Core.Issue
         private readonly ITenantProvider _tenantProvider;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostEnvironment _environment;
+        private readonly IWorkflowRuntimeService _workflowRuntimeService;
 
         public AssetIssueService(
             ApplicationDbContext context,
             ITenantProvider tenantProvider,
             IHttpContextAccessor httpContextAccessor,
-            IHostEnvironment environment)
+            IHostEnvironment environment,
+            IWorkflowRuntimeService workflowRuntimeService)
         {
             _context = context;
             _tenantProvider = tenantProvider;
             _httpContextAccessor = httpContextAccessor;
             _environment = environment;
+            _workflowRuntimeService = workflowRuntimeService;
         }
 
         public async Task<ResponseDto<AssetIssueDto>> CreateAsync(CreateAssetIssueDto dto)
@@ -70,8 +73,30 @@ namespace AssetFlow.Services.Core.Issue
                 Status = (int)Enums.IssueStatus.New,
                 ResolutionRemarks = string.Empty
             };
-            _context.AssetIssues.Add(entity);
-            await _context.SaveChangesAsync();
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.AssetIssues.Add(entity);
+                await _context.SaveChangesAsync();
+                var (wfOk, wfError) = await _workflowRuntimeService.InitiateIfMappedAsync(
+                    tenantResult.TenantId,
+                    WorkflowReferenceItemTypes.Issue,
+                    entity.Id,
+                    userId.Value);
+                if (!wfOk)
+                {
+                    await tx.RollbackAsync();
+                    response.AddError(wfError ?? "Workflow initiation failed.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
             response.Result = await MapDetailAsync(entity.Id);
             return response;
         }
