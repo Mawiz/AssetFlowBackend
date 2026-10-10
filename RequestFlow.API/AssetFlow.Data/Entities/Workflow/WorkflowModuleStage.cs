@@ -26,8 +26,12 @@ namespace AssetFlow.Data.Entities.Workflow
         public bool IsFinalApprover { get; set; }
         public int? AcknowledgementTemplateId { get; set; }
         public bool IsClosingStage { get; set; }
+        public bool IsInitialStage { get; set; }
         public bool IsLogOpen { get; set; }
         public bool IsTATExtension { get; set; }
+
+        public int? AssigneeTypeId { get; set; }
+        public int? AssignmentValue { get; set; }
 
         public virtual ICollection<WorkflowStageAction> StageActions { get; set; } = new List<WorkflowStageAction>();
         public virtual ICollection<WorkflowStageActionViewer> Viewers { get; set; } = new List<WorkflowStageActionViewer>();

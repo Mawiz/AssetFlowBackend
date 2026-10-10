@@ -324,6 +324,10 @@ namespace AssetFlow.Services.Core.Workflow
 
             { response.AddError("Stage name (English) is required."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
+            var assigneeCheck = await ValidateStageAssigneeAsync(module.TenantId, dto.AssigneeTypeId, dto.AssignmentValue);
+
+            if (!assigneeCheck.Ok) { response.AddError(assigneeCheck.Error!); response.StatusCode = assigneeCheck.StatusCode; return response; }
+
 
 
             var entity = new WorkflowModuleStage
@@ -352,15 +356,25 @@ namespace AssetFlow.Services.Core.Workflow
 
                 IsClosingStage = dto.IsClosingStage,
 
+                IsInitialStage = dto.IsInitialStage,
+
                 IsLogOpen = dto.IsLogOpen,
 
                 IsTATExtension = dto.IsTATExtension,
+
+                AssigneeTypeId = dto.AssigneeTypeId,
+
+                AssignmentValue = dto.AssigneeTypeId == (int)Enums.WorkflowPartyType.User ? null : dto.AssignmentValue,
 
                 IsActive = dto.IsActive
 
             };
 
             _context.WorkflowModuleStages.Add(entity);
+
+            if (dto.IsInitialStage)
+
+                await ClearOtherInitialStagesAsync(dto.ModuleId, entity.StageId);
 
             await _context.SaveChangesAsync();
 
@@ -410,6 +424,10 @@ namespace AssetFlow.Services.Core.Workflow
 
             { response.AddError("Stage name (English) is required."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
 
+            var assigneeCheck = await ValidateStageAssigneeAsync(module.TenantId, dto.AssigneeTypeId, dto.AssignmentValue);
+
+            if (!assigneeCheck.Ok) { response.AddError(assigneeCheck.Error!); response.StatusCode = assigneeCheck.StatusCode; return response; }
+
 
 
             entity.ModuleId = dto.ModuleId;
@@ -432,11 +450,21 @@ namespace AssetFlow.Services.Core.Workflow
 
             entity.IsClosingStage = dto.IsClosingStage;
 
+            entity.IsInitialStage = dto.IsInitialStage;
+
             entity.IsLogOpen = dto.IsLogOpen;
 
             entity.IsTATExtension = dto.IsTATExtension;
 
+            entity.AssigneeTypeId = dto.AssigneeTypeId;
+
+            entity.AssignmentValue = dto.AssigneeTypeId == (int)Enums.WorkflowPartyType.User ? null : dto.AssignmentValue;
+
             entity.IsActive = dto.IsActive;
+
+            if (dto.IsInitialStage)
+
+                await ClearOtherInitialStagesAsync(entity.ModuleId, entity.StageId);
 
             await _context.SaveChangesAsync();
 
@@ -466,7 +494,7 @@ namespace AssetFlow.Services.Core.Workflow
 
             if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
 
-            response.Result = MapStageEntity(stage);
+            response.Result = await MapStageDtoAsync(stage, stage.Module?.TenantId);
 
             return response;
 
@@ -522,9 +550,15 @@ namespace AssetFlow.Services.Core.Workflow
 
                     IsClosingStage = s.IsClosingStage,
 
+                    IsInitialStage = s.IsInitialStage,
+
                     IsLogOpen = s.IsLogOpen,
 
                     IsTATExtension = s.IsTATExtension,
+
+                    AssigneeTypeId = s.AssigneeTypeId,
+
+                    AssignmentValue = s.AssignmentValue,
 
                     IsActive = s.IsActive
 
@@ -818,7 +852,7 @@ namespace AssetFlow.Services.Core.Workflow
 
 
 
-            var validation = await ValidateStageActionReferencesAsync(dto.ActionId, dto.NextSageId, stageCtx.ModuleId, stageCtx.TenantId,
+            var validation = await ValidateStageActionReferencesAsync(dto.ActionId, dto.NextSageId, stageCtx.ModuleId, stageCtx.TenantId, dto.StageId,
 
                 dto.AssigneeTypeId, dto.AssignmentValue);
 
@@ -827,8 +861,6 @@ namespace AssetFlow.Services.Core.Workflow
             if (string.IsNullOrWhiteSpace(dto.StageActionDisplayName))
 
             { response.AddError("Stage action display name is required."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
-
-
 
             var entity = new WorkflowStageAction
 
@@ -900,7 +932,7 @@ namespace AssetFlow.Services.Core.Workflow
 
 
 
-            var validation = await ValidateStageActionReferencesAsync(dto.ActionId, dto.NextSageId, stageCtx.ModuleId, stageCtx.TenantId,
+            var validation = await ValidateStageActionReferencesAsync(dto.ActionId, dto.NextSageId, stageCtx.ModuleId, stageCtx.TenantId, stageId,
 
                 dto.AssigneeTypeId, dto.AssignmentValue);
 
@@ -909,8 +941,6 @@ namespace AssetFlow.Services.Core.Workflow
             if (string.IsNullOrWhiteSpace(dto.StageActionDisplayName))
 
             { response.AddError("Stage action display name is required."); response.StatusCode = HttpStatusCode.BadRequest; return response; }
-
-
 
             entity.StageId = dto.StageId;
 
@@ -1322,7 +1352,7 @@ namespace AssetFlow.Services.Core.Workflow
 
         private async Task<(bool Ok, string? Error, HttpStatusCode StatusCode)> ValidateStageActionReferencesAsync(
 
-            int actionId, int? nextStageId, int moduleId, int? tenantId, int? assigneeTypeId, int? assignmentValue)
+            int actionId, int? nextStageId, int moduleId, int? tenantId, int stageId, int? assigneeTypeId, int? assignmentValue)
 
         {
 
@@ -1346,9 +1376,39 @@ namespace AssetFlow.Services.Core.Workflow
 
             }
 
-
-
             return await ValidateAssigneeAsync(tenantId, assigneeTypeId, assignmentValue);
+
+        }
+
+
+
+        private async Task<(bool Ok, string? Error, HttpStatusCode StatusCode)> ValidateStageAssigneeAsync(int? tenantId, int? assigneeTypeId, int? assignmentValue)
+
+        {
+
+            if (!assigneeTypeId.HasValue && !assignmentValue.HasValue) return (true, null, HttpStatusCode.OK);
+
+            if (!assigneeTypeId.HasValue)
+
+                return (false, "Assignee type is required when assignment value is provided.", HttpStatusCode.BadRequest);
+
+            if (assigneeTypeId == (int)Enums.WorkflowPartyType.User)
+
+            {
+
+                if (assignmentValue.HasValue)
+
+                    return (false, "User-based stages do not use assignment value at design time; the user is assigned when the workflow runs.", HttpStatusCode.BadRequest);
+
+                return (true, null, HttpStatusCode.OK);
+
+            }
+
+            if (!assignmentValue.HasValue)
+
+                return (false, "Role is required for role-based stage assignment.", HttpStatusCode.BadRequest);
+
+            return await ValidatePartyAsync(tenantId, assigneeTypeId.Value, assignmentValue.Value, "Stage assignee");
 
         }
 
@@ -1486,9 +1546,31 @@ namespace AssetFlow.Services.Core.Workflow
 
             var stage = await _context.WorkflowModuleStages.AsNoTracking()
 
+                .Include(s => s.Module)
+
                 .FirstOrDefaultAsync(s => s.StageId == stageId && !s.IsDeleted);
 
-            return stage == null ? null : MapStageEntity(stage);
+            return stage == null ? null : await MapStageDtoAsync(stage, stage.Module?.TenantId);
+
+        }
+
+
+
+        private async Task<WorkflowModuleStageDto> MapStageDtoAsync(WorkflowModuleStage s, int? tenantId)
+
+        {
+
+            var dto = MapStageEntity(s);
+
+            if (s.AssigneeTypeId == (int)Enums.WorkflowPartyType.User)
+
+                dto.AssigneeDisplayName = "User (assigned at runtime)";
+
+            else if (s.AssigneeTypeId.HasValue && s.AssignmentValue.HasValue)
+
+                dto.AssigneeDisplayName = await ResolvePartyDisplayNameAsync(tenantId, s.AssigneeTypeId.Value, s.AssignmentValue.Value);
+
+            return dto;
 
         }
 
@@ -1520,13 +1602,37 @@ namespace AssetFlow.Services.Core.Workflow
 
             IsClosingStage = s.IsClosingStage,
 
+            IsInitialStage = s.IsInitialStage,
+
             IsLogOpen = s.IsLogOpen,
 
             IsTATExtension = s.IsTATExtension,
 
+            AssigneeTypeId = s.AssigneeTypeId,
+
+            AssignmentValue = s.AssignmentValue,
+
             IsActive = s.IsActive
 
         };
+
+
+
+        private async Task ClearOtherInitialStagesAsync(int moduleId, int keepStageId)
+
+        {
+
+            var others = await _context.WorkflowModuleStages
+
+                .Where(s => s.ModuleId == moduleId && s.StageId != keepStageId && !s.IsDeleted && s.IsInitialStage)
+
+                .ToListAsync();
+
+            foreach (var s in others)
+
+                s.IsInitialStage = false;
+
+        }
 
 
 

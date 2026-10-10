@@ -42,8 +42,12 @@ namespace AssetFlow.Services.Dto.Workflow
         public bool IsFinalApprover { get; set; }
         public int? AcknowledgementTemplateId { get; set; }
         public bool IsClosingStage { get; set; }
+        public bool IsInitialStage { get; set; }
         public bool IsLogOpen { get; set; }
         public bool IsTATExtension { get; set; }
+        public int? AssigneeTypeId { get; set; }
+        public int? AssignmentValue { get; set; }
+        public string? AssigneeDisplayName { get; set; }
         public bool IsActive { get; set; }
     }
 
@@ -59,8 +63,11 @@ namespace AssetFlow.Services.Dto.Workflow
         public bool IsFinalApprover { get; set; }
         public int? AcknowledgementTemplateId { get; set; }
         public bool IsClosingStage { get; set; }
+        public bool IsInitialStage { get; set; }
         public bool IsLogOpen { get; set; }
         public bool IsTATExtension { get; set; }
+        public int? AssigneeTypeId { get; set; }
+        public int? AssignmentValue { get; set; }
         public bool IsActive { get; set; } = true;
     }
 

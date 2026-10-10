@@ -4206,6 +4206,12 @@ namespace AssetFlow.Data.Migrations
                     b.Property<int?>("AcknowledgementTemplateId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AssigneeTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AssignmentValue")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
@@ -4228,6 +4234,9 @@ namespace AssetFlow.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsFinalApprover")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInitialStage")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsLogOpen")
