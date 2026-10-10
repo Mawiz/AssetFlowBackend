@@ -18,5 +18,6 @@ namespace AssetFlow.Services.Contracts
         Task<ResponseDto<WorkflowMasterDto>> PerformActionAsync(PerformWorkflowActionDto dto);
         Task<ResponseDto<List<WorkflowTaskDto>>> GetHistoryAsync(Guid workflowMasterId);
         Task<ResponseDto<object>> FilterInboxAsync(WorkflowInboxFilterDto model);
+        Task<ResponseDto<IssueWorkflowIntegrationDto>> GetIssueWorkflowIntegrationAsync(int issueId, Guid? workflowTaskId = null);
     }
 }

@@ -11,8 +11,13 @@ namespace AssetFlow.API.Controllers
     public class AssetIssueController : BaseAppController
     {
         private readonly IAssetIssueService _service;
+        private readonly IWorkflowRuntimeService _workflowRuntime;
 
-        public AssetIssueController(IAssetIssueService service) => _service = service;
+        public AssetIssueController(IAssetIssueService service, IWorkflowRuntimeService workflowRuntime)
+        {
+            _service = service;
+            _workflowRuntime = workflowRuntime;
+        }
 
         [HttpPost]
         [RequirePermission(Permissions.AssetIssueCreate)]
@@ -43,6 +48,14 @@ namespace AssetFlow.API.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var response = await _service.GetByIdAsync(id);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        [HttpGet("{id}/workflow")]
+        [RequirePermission(Permissions.AssetIssueView)]
+        public async Task<IActionResult> GetWorkflowIntegration(int id, [FromQuery] Guid? workflowTaskId)
+        {
+            var response = await _workflowRuntime.GetIssueWorkflowIntegrationAsync(id, workflowTaskId);
             return StatusCode((int)response.StatusCode, response);
         }
 

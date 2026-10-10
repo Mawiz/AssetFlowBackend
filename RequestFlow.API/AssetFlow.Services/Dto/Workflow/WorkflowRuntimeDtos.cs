@@ -107,4 +107,34 @@ namespace AssetFlow.Services.Dto.Workflow
         public string ReferenceItemType { get; set; } = string.Empty;
         public int ReferenceItemId { get; set; }
     }
+
+    /// <summary>Issue fields for workflow/task-based access (no broad asset master permission required).</summary>
+    public class IssueWorkflowIssueDto
+    {
+        public int Id { get; set; }
+        public string IssueNumber { get; set; } = string.Empty;
+        public int? TenantId { get; set; }
+        public int AssetId { get; set; }
+        public string AssetCode { get; set; } = string.Empty;
+        public string AssetName { get; set; } = string.Empty;
+        public string LocationDisplayPath { get; set; } = string.Empty;
+        public string IssueCategoryName { get; set; } = string.Empty;
+        public int Priority { get; set; }
+        public int Status { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public string ImmediateAction { get; set; } = string.Empty;
+        public DateTime ReportedAt { get; set; }
+        public string ReportedByUserName { get; set; } = string.Empty;
+        public int AssetStatusAtReport { get; set; }
+    }
+
+    public class IssueWorkflowIntegrationDto
+    {
+        public IssueWorkflowIssueDto Issue { get; set; } = new();
+        public WorkflowMasterDto? Master { get; set; }
+        public Guid? ActiveWorkflowTaskId { get; set; }
+        public WorkflowTaskDto? ActiveTask { get; set; }
+        public List<WorkflowTaskDto> History { get; set; } = new();
+        public List<WorkflowStageActionOptionDto> AvailableActions { get; set; } = new();
+    }
 }

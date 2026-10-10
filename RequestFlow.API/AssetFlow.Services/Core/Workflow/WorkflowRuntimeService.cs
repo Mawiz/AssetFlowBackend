@@ -1,6 +1,7 @@
 using AssetFlow.Common.Enum;
 using AssetFlow.Common.Helper;
 using AssetFlow.Data.Data;
+using AssetFlow.Data.Entities.Issue;
 using AssetFlow.Data.Entities.Workflow;
 using AssetFlow.Data.Identity;
 using AssetFlow.Data.Provider;
@@ -334,6 +335,86 @@ namespace AssetFlow.Services.Core.Workflow
             return response;
         }
 
+        public async Task<ResponseDto<IssueWorkflowIntegrationDto>> GetIssueWorkflowIntegrationAsync(int issueId, Guid? workflowTaskId = null)
+        {
+            var response = new ResponseDto<IssueWorkflowIntegrationDto>();
+            var userId = UserHelper.GetCurrentUserId(_httpContextAccessor);
+            if (!userId.HasValue)
+            {
+                response.AddError("User context is required.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            var issue = await MapIssueWorkflowIssueAsync(issueId);
+            if (issue == null)
+            {
+                response.AddError("Issue not found.");
+                response.StatusCode = HttpStatusCode.NotFound;
+                return response;
+            }
+
+            var tenantAccess = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, issue.TenantId);
+            if (!tenantAccess.Ok)
+            {
+                response.AddError(tenantAccess.Error);
+                response.StatusCode = HttpStatusCode.Forbidden;
+                return response;
+            }
+
+            var master = await _context.WorkflowMasters.AsNoTracking()
+                .FirstOrDefaultAsync(m =>
+                    m.ReferenceItemType == WorkflowReferenceItemTypes.Issue &&
+                    m.ReferenceItemId == issueId &&
+                    !m.IsDeleted);
+
+            if (master == null)
+            {
+                response.Result = new IssueWorkflowIntegrationDto { Issue = issue };
+                return response;
+            }
+
+            var roleIds = UserHelper.GetCurrentRoleIds(_httpContextAccessor);
+            var canView = await UserHasPermissionAsync(userId.Value, Permissions.AssetIssueView)
+                || await CanUserAccessIssueWorkflowAsync(master.WorkflowMasterId, master, userId.Value, roleIds);
+            if (!canView)
+            {
+                response.AddError("Access denied.");
+                response.StatusCode = HttpStatusCode.Forbidden;
+                return response;
+            }
+
+            WorkflowTask? focusTask = null;
+            if (workflowTaskId.HasValue)
+            {
+                focusTask = await _context.WorkflowTasks.AsNoTracking()
+                    .Include(t => t.ModuleStage)
+                    .FirstOrDefaultAsync(t => t.WorkflowTaskId == workflowTaskId.Value && t.WorkflowMasterId == master.WorkflowMasterId && !t.IsDeleted);
+            }
+
+            var activeTaskEntity = await _context.WorkflowTasks.AsNoTracking()
+                .Include(t => t.ModuleStage)
+                .Where(t => t.WorkflowMasterId == master.WorkflowMasterId && !t.IsDeleted && !t.IsCompleted)
+                .OrderBy(t => t.AssignedAt)
+                .FirstOrDefaultAsync();
+
+            var actionTask = focusTask ?? activeTaskEntity;
+            var available = new List<WorkflowStageActionOptionDto>();
+            if (actionTask != null && !actionTask.IsCompleted)
+                available = await GetAvailableActionsInternalAsync(actionTask);
+
+            response.Result = new IssueWorkflowIntegrationDto
+            {
+                Issue = issue,
+                Master = await MapMasterAsync(master.WorkflowMasterId),
+                ActiveWorkflowTaskId = activeTaskEntity?.WorkflowTaskId,
+                ActiveTask = activeTaskEntity == null ? null : await MapTaskAsync(activeTaskEntity.WorkflowTaskId, master),
+                History = await GetHistoryInternalAsync(master.WorkflowMasterId),
+                AvailableActions = available
+            };
+            return response;
+        }
+
         public async Task<ResponseDto<object>> FilterInboxAsync(WorkflowInboxFilterDto model)
         {
             var response = new ResponseDto<object>();
@@ -355,7 +436,22 @@ namespace AssetFlow.Services.Core.Workflow
 
             query = category switch
             {
-                WorkflowInboxCategory.Created => query.Where(x => x.Master.SubmitBy == userId.Value),
+                WorkflowInboxCategory.Created => query.Where(x =>
+                    x.Master.SubmitBy == userId.Value &&
+                    (
+                        (!x.Master.IsCompleted &&
+                         x.Task.WorkflowTaskId == _context.WorkflowTasks
+                             .Where(t2 => t2.WorkflowMasterId == x.Master.WorkflowMasterId && !t2.IsDeleted && !t2.IsCompleted)
+                             .OrderBy(t2 => t2.AssignedAt)
+                             .Select(t2 => t2.WorkflowTaskId)
+                             .FirstOrDefault()) ||
+                        (x.Master.IsCompleted &&
+                         x.Task.WorkflowTaskId == _context.WorkflowTasks
+                             .Where(t2 => t2.WorkflowMasterId == x.Master.WorkflowMasterId && !t2.IsDeleted)
+                             .OrderByDescending(t2 => t2.AssignedAt)
+                             .Select(t2 => t2.WorkflowTaskId)
+                             .FirstOrDefault())
+                    )),
                 WorkflowInboxCategory.PendingWithMe => query.Where(x =>
                     !x.Task.IsCompleted &&
                     !x.Master.IsCompleted &&
@@ -383,7 +479,26 @@ namespace AssetFlow.Services.Core.Workflow
                             (v.ViewerTypeId == (int)WorkflowPartyType.User && v.ViewerValue == userId.Value) ||
                             (v.ViewerTypeId == (int)WorkflowPartyType.Role && roleIds.Contains(v.ViewerValue))
                         ))),
-                WorkflowInboxCategory.PerformedByMe => query.Where(x => x.Task.IsCompleted && x.Task.PerformedByUserId == userId.Value),
+                WorkflowInboxCategory.PerformedByMe => query.Where(x =>
+                    _context.WorkflowTasks.Any(p =>
+                        p.WorkflowMasterId == x.Master.WorkflowMasterId &&
+                        !p.IsDeleted &&
+                        p.IsCompleted &&
+                        p.PerformedByUserId == userId.Value) &&
+                    (
+                        (!x.Master.IsCompleted &&
+                         x.Task.WorkflowTaskId == _context.WorkflowTasks
+                             .Where(t2 => t2.WorkflowMasterId == x.Master.WorkflowMasterId && !t2.IsDeleted && !t2.IsCompleted)
+                             .OrderBy(t2 => t2.AssignedAt)
+                             .Select(t2 => t2.WorkflowTaskId)
+                             .FirstOrDefault()) ||
+                        (x.Master.IsCompleted &&
+                         x.Task.WorkflowTaskId == _context.WorkflowTasks
+                             .Where(t2 => t2.WorkflowMasterId == x.Master.WorkflowMasterId && !t2.IsDeleted)
+                             .OrderByDescending(t2 => t2.AssignedAt)
+                             .Select(t2 => t2.WorkflowTaskId)
+                             .FirstOrDefault())
+                    )),
                 _ => query.Where(x => false)
             };
 
@@ -407,6 +522,78 @@ namespace AssetFlow.Services.Core.Workflow
 
             response.Result = new { items, totalCount = paged.TotalItemCount };
             return response;
+        }
+
+        private async Task<bool> UserHasPermissionAsync(int userId, string permission)
+        {
+            var roleIds = await _context.ApplicationUserRoles.AsNoTracking()
+                .Where(ur => ur.UserId == userId)
+                .Select(ur => ur.RoleId)
+                .ToListAsync();
+            if (roleIds.Count == 0) return false;
+            return await _context.RoleResources.AsNoTracking()
+                .AnyAsync(rr => roleIds.Contains(rr.ApplicationRoleId) && rr.Resource.ResourceName == permission);
+        }
+
+        private async Task<bool> CanUserAccessIssueWorkflowAsync(Guid workflowMasterId, WorkflowMaster master, int userId, IReadOnlyList<int> roleIds)
+        {
+            if (master.SubmitBy == userId) return true;
+
+            if (await _context.WorkflowTasks.AnyAsync(t =>
+                    t.WorkflowMasterId == workflowMasterId && !t.IsDeleted && t.IsCompleted && t.PerformedByUserId == userId))
+                return true;
+
+            var activeTask = await _context.WorkflowTasks.AsNoTracking()
+                .Where(t => t.WorkflowMasterId == workflowMasterId && !t.IsDeleted && !t.IsCompleted)
+                .OrderBy(t => t.AssignedAt)
+                .FirstOrDefaultAsync();
+            if (activeTask != null)
+            {
+                if (activeTask.AssigneeTypeId == (int)WorkflowPartyType.User && activeTask.AssignmentValue == userId)
+                    return true;
+                if (activeTask.AssigneeTypeId == (int)WorkflowPartyType.Role && activeTask.AssignmentValue.HasValue && roleIds.Contains(activeTask.AssignmentValue.Value))
+                    return true;
+
+                var isViewer = await _context.WorkflowStageActionViewers.AnyAsync(v =>
+                    v.StageId == activeTask.ModuleStageId &&
+                    v.IsActive &&
+                    !v.IsDeleted &&
+                    (
+                        (v.ViewerTypeId == (int)WorkflowPartyType.User && v.ViewerValue == userId) ||
+                        (v.ViewerTypeId == (int)WorkflowPartyType.Role && roleIds.Contains(v.ViewerValue))
+                    ));
+                if (isViewer) return true;
+            }
+
+            return false;
+        }
+
+        private async Task<IssueWorkflowIssueDto?> MapIssueWorkflowIssueAsync(int issueId)
+        {
+            return await _context.AssetIssues.AsNoTracking()
+                .Include(x => x.Asset)
+                .Include(x => x.IssueCategory)
+                .Include(x => x.ReportedByUser)
+                .Where(x => x.Id == issueId)
+                .Select(x => new IssueWorkflowIssueDto
+                {
+                    Id = x.Id,
+                    IssueNumber = x.IssueNumber,
+                    TenantId = x.TenantId,
+                    AssetId = x.AssetId,
+                    AssetCode = x.Asset.AssetCode,
+                    AssetName = x.Asset.Name,
+                    LocationDisplayPath = x.LocationDisplayPath ?? string.Empty,
+                    IssueCategoryName = x.IssueCategory.Name,
+                    Priority = x.Priority,
+                    Status = x.Status,
+                    Description = x.Description,
+                    ImmediateAction = x.ImmediateAction,
+                    ReportedAt = x.ReportedAt,
+                    ReportedByUserName = x.ReportedByUser.FullName ?? x.ReportedByUser.UserName ?? string.Empty,
+                    AssetStatusAtReport = x.AssetStatusAtReport
+                })
+                .FirstOrDefaultAsync();
         }
 
         private async Task<WorkflowTask?> LoadTaskWithAccessAsync(Guid workflowTaskId)

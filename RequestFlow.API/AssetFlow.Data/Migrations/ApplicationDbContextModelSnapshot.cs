@@ -42,7 +42,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("FeatureId");
 
-                    b.ToTable("Resources");
+                    b.ToTable("Resources", (string)null);
 
                     b.HasData(
                         new
@@ -1037,7 +1037,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ResourceId");
 
-                    b.ToTable("RoleResources");
+                    b.ToTable("RoleResources", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Asset.Asset", b =>
@@ -1166,7 +1166,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("Assets");
+                    b.ToTable("Assets", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Asset.AssetCategory", b =>
@@ -1223,7 +1223,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("AssetCategories");
+                    b.ToTable("AssetCategories", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Asset.AssetComponent", b =>
@@ -1331,7 +1331,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("AssetComponents");
+                    b.ToTable("AssetComponents", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Asset.AssetType", b =>
@@ -1393,7 +1393,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("AssetTypes");
+                    b.ToTable("AssetTypes", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.MenuItemEnum", b =>
@@ -1446,7 +1446,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("MenuItemEnums");
+                    b.ToTable("MenuItemEnums", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.MetaDataKeysEnum", b =>
@@ -1494,7 +1494,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("MetaDataKeysEnums");
+                    b.ToTable("MetaDataKeysEnums", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.NavigationCreateItemEnum", b =>
@@ -1547,7 +1547,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("NavigationCreateItemEnums");
+                    b.ToTable("NavigationCreateItemEnums", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Configurations.NavigationItemEnum", b =>
@@ -1600,7 +1600,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("NavigationItemEnums");
+                    b.ToTable("NavigationItemEnums", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.History.MaintenanceCostRecord", b =>
@@ -1713,7 +1713,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("WorkOrderId");
 
-                    b.ToTable("MaintenanceCostRecords");
+                    b.ToTable("MaintenanceCostRecords", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.History.WorkOrderLaborRecord", b =>
@@ -1785,7 +1785,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("WorkOrderId");
 
-                    b.ToTable("WorkOrderLaborRecords");
+                    b.ToTable("WorkOrderLaborRecords", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Issue.AssetIssue", b =>
@@ -1895,7 +1895,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("AssetIssues");
+                    b.ToTable("AssetIssues", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Issue.IssueAttachment", b =>
@@ -1953,7 +1953,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("IssueAttachments");
+                    b.ToTable("IssueAttachments", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Issue.IssueCategory", b =>
@@ -2013,7 +2013,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("IssueCategories");
+                    b.ToTable("IssueCategories", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Location.Location", b =>
@@ -2073,7 +2073,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Location.LocationType", b =>
@@ -2131,7 +2131,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("LocationTypes");
+                    b.ToTable("LocationTypes", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.MaintenanceChecklist", b =>
@@ -2196,7 +2196,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("MaintenanceChecklists");
+                    b.ToTable("MaintenanceChecklists", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.MaintenanceChecklistItem", b =>
@@ -2255,7 +2255,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("MaintenanceChecklistItems");
+                    b.ToTable("MaintenanceChecklistItems", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.MaintenanceChecklistItemOption", b =>
@@ -2303,7 +2303,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("MaintenanceChecklistItemOptions");
+                    b.ToTable("MaintenanceChecklistItemOptions", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.MaintenanceSchedule", b =>
@@ -2409,7 +2409,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("MaintenanceSchedules");
+                    b.ToTable("MaintenanceSchedules", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.MaintenanceType", b =>
@@ -2469,7 +2469,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("MaintenanceTypes");
+                    b.ToTable("MaintenanceTypes", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.PreventiveMaintenanceChecklistResponse", b =>
@@ -2528,7 +2528,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("PreventiveMaintenanceOccurrenceId");
 
-                    b.ToTable("PreventiveMaintenanceChecklistResponses");
+                    b.ToTable("PreventiveMaintenanceChecklistResponses", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.PreventiveMaintenanceOccurrence", b =>
@@ -2640,7 +2640,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[ScheduledDate] IS NOT NULL");
 
-                    b.ToTable("PreventiveMaintenanceOccurrences");
+                    b.ToTable("PreventiveMaintenanceOccurrences", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Maintenance.PreventiveMaintenanceOccurrenceChecklistItem", b =>
@@ -2707,7 +2707,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("PreventiveMaintenanceOccurrenceId");
 
-                    b.ToTable("PreventiveMaintenanceOccurrenceChecklistItems");
+                    b.ToTable("PreventiveMaintenanceOccurrenceChecklistItems", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.Part", b =>
@@ -2799,7 +2799,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("Parts");
+                    b.ToTable("Parts", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartCategory", b =>
@@ -2856,7 +2856,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("PartCategories");
+                    b.ToTable("PartCategories", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartInventory", b =>
@@ -2923,7 +2923,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("PartInventories");
+                    b.ToTable("PartInventories", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartInventoryBatch", b =>
@@ -3016,7 +3016,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("PartInventoryBatches");
+                    b.ToTable("PartInventoryBatches", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartReplacement", b =>
@@ -3155,7 +3155,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("WorkOrderId");
 
-                    b.ToTable("PartReplacements");
+                    b.ToTable("PartReplacements", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartSerialNumber", b =>
@@ -3251,7 +3251,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("PartSerialNumbers");
+                    b.ToTable("PartSerialNumbers", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartTransaction", b =>
@@ -3364,7 +3364,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ToLocationId");
 
-                    b.ToTable("PartTransactions");
+                    b.ToTable("PartTransactions", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.PartTransactionSerial", b =>
@@ -3412,7 +3412,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("PartTransactionId");
 
-                    b.ToTable("PartTransactionSerials");
+                    b.ToTable("PartTransactionSerials", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.Supplier", b =>
@@ -3489,7 +3489,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Language", b =>
@@ -3542,7 +3542,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("Languages");
+                    b.ToTable("Languages", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.SubscriptionType", b =>
@@ -3595,7 +3595,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("SubscriptionTypes");
+                    b.ToTable("SubscriptionTypes", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.Tenant", b =>
@@ -3640,7 +3640,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("SubscriptionTypeId");
 
-                    b.ToTable("Tenants");
+                    b.ToTable("Tenants", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.TenantLanguage", b =>
@@ -3669,7 +3669,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("TenantLanguages");
+                    b.ToTable("TenantLanguages", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Tenant.TenantResource", b =>
@@ -3693,7 +3693,7 @@ namespace AssetFlow.Data.Migrations
                     b.HasIndex("TenantId", "ResourceId")
                         .IsUnique();
 
-                    b.ToTable("TenantResources");
+                    b.ToTable("TenantResources", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.WorkOrder.WorkOrder", b =>
@@ -3872,7 +3872,7 @@ namespace AssetFlow.Data.Migrations
                         .IsUnique()
                         .HasFilter("[TenantId] IS NOT NULL");
 
-                    b.ToTable("WorkOrders");
+                    b.ToTable("WorkOrders", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.WorkOrder.WorkOrderAssignmentHistory", b =>
@@ -3933,7 +3933,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("WorkOrderId");
 
-                    b.ToTable("WorkOrderAssignmentHistories");
+                    b.ToTable("WorkOrderAssignmentHistories", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.WorkOrder.WorkOrderAttachment", b =>
@@ -3991,7 +3991,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("WorkOrderId");
 
-                    b.ToTable("WorkOrderAttachments");
+                    b.ToTable("WorkOrderAttachments", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.WorkOrder.WorkOrderDiagnosis", b =>
@@ -4070,7 +4070,7 @@ namespace AssetFlow.Data.Migrations
                     b.HasIndex("WorkOrderId")
                         .IsUnique();
 
-                    b.ToTable("WorkOrderDiagnoses");
+                    b.ToTable("WorkOrderDiagnoses", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.WorkOrder.WorkOrderStatusHistory", b =>
@@ -4129,7 +4129,7 @@ namespace AssetFlow.Data.Migrations
 
                     b.HasIndex("WorkOrderId");
 
-                    b.ToTable("WorkOrderStatusHistories");
+                    b.ToTable("WorkOrderStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("AssetFlow.Data.Entities.Workflow.WorkflowActionDefinition", b =>

@@ -65,5 +65,13 @@ namespace AssetFlow.API.Controllers
         [HttpPost("inbox/Filter")]
         [RequirePermission(Permissions.WorkflowRuntimeView)]
         public async Task<IActionResult> FilterInbox([FromBody] WorkflowInboxFilterDto model) => Ok(await _service.FilterInboxAsync(model));
+
+        [HttpGet("issue/{issueId:int}")]
+        [RequirePermission(Permissions.WorkflowRuntimeView)]
+        public async Task<IActionResult> GetIssueIntegration(int issueId, [FromQuery] Guid? workflowTaskId)
+        {
+            var response = await _service.GetIssueWorkflowIntegrationAsync(issueId, workflowTaskId);
+            return StatusCode((int)response.StatusCode, response);
+        }
     }
 }
