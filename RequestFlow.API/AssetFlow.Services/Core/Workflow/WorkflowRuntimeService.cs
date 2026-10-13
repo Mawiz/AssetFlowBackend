@@ -283,7 +283,7 @@ namespace AssetFlow.Services.Core.Workflow
                     return response;
                 }
 
-                if (!IsSystemAdmin && !CanUserPerformAction(stageAction, stage, userId.Value, roleIds))
+                if (!IsSystemAdmin && !CanUserPerformAction(stageAction, task, userId.Value, roleIds))
                 {
                     response.AddError("You are not authorized to perform this action.");
                     response.StatusCode = HttpStatusCode.Forbidden;
@@ -319,22 +319,50 @@ namespace AssetFlow.Services.Core.Workflow
                 int? specificPersonUserId = null;
                 if (WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds))
                 {
-                    if (!dto.SpecificPersonUserId.HasValue || dto.SpecificPersonUserId <= 0)
+                    if (!stageAction.NextSageId.HasValue)
                     {
-                        response.AddError("Specific person is required for this action.");
+                        response.AddError("Specific person assignment requires a next stage on this action.");
                         response.StatusCode = HttpStatusCode.BadRequest;
                         return response;
                     }
 
-                    var personValidation = await ValidateSpecificPersonUserAsync(dto.SpecificPersonUserId.Value, master.TenantId);
-                    if (!personValidation.Ok)
+                    var nextStageForAssignee = await _context.WorkflowModuleStages.AsNoTracking()
+                        .FirstOrDefaultAsync(s => s.StageId == stageAction.NextSageId.Value && !s.IsDeleted && s.IsActive);
+                    if (nextStageForAssignee == null)
                     {
-                        response.AddError(personValidation.Error!);
+                        response.AddError("Next stage configuration is invalid.");
                         response.StatusCode = HttpStatusCode.BadRequest;
                         return response;
                     }
 
-                    specificPersonUserId = dto.SpecificPersonUserId.Value;
+                    var needsRuntimeUser = nextStageForAssignee.AssigneeTypeId == (int)WorkflowPartyType.User
+                        && !nextStageForAssignee.AssignmentValue.HasValue;
+
+                    if (needsRuntimeUser)
+                    {
+                        if (!dto.SpecificPersonUserId.HasValue || dto.SpecificPersonUserId <= 0)
+                        {
+                            response.AddError("Specific person is required for this action.");
+                            response.StatusCode = HttpStatusCode.BadRequest;
+                            return response;
+                        }
+
+                        var personValidation = await ValidateSpecificPersonUserAsync(dto.SpecificPersonUserId.Value, master.TenantId);
+                        if (!personValidation.Ok)
+                        {
+                            response.AddError(personValidation.Error!);
+                            response.StatusCode = HttpStatusCode.BadRequest;
+                            return response;
+                        }
+
+                        specificPersonUserId = dto.SpecificPersonUserId.Value;
+                    }
+                    else if (dto.SpecificPersonUserId.HasValue)
+                    {
+                        response.AddError("Specific person is not used when the next stage assignee is fully configured on the module stage.");
+                        response.StatusCode = HttpStatusCode.BadRequest;
+                        return response;
+                    }
                 }
                 else if (dto.SpecificPersonUserId.HasValue)
                 {
@@ -387,13 +415,6 @@ namespace AssetFlow.Services.Core.Workflow
                 task.ModifiedOn = now;
                 task.ModifiedById = userId;
 
-                if (WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds) && !stageAction.NextSageId.HasValue)
-                {
-                    response.AddError("Specific person assignment requires a next stage on this action.");
-                    response.StatusCode = HttpStatusCode.BadRequest;
-                    return response;
-                }
-
                 if (!stageAction.NextSageId.HasValue)
                 {
                     if (!stage.IsClosingStage)
@@ -416,8 +437,8 @@ namespace AssetFlow.Services.Core.Workflow
                         return response;
                     }
 
-                    var assignFromPopup = WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds);
-                    var nextAssign = ResolveNextTaskAssignment(nextStage, assignFromPopup, specificPersonUserId);
+                    var runtimeUserId = WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds) ? specificPersonUserId : null;
+                    var nextAssign = ResolveStageAssignment(nextStage, runtimeUserId);
                     if (!nextAssign.Ok)
                     {
                         response.AddError(nextAssign.Error!);
@@ -763,7 +784,7 @@ namespace AssetFlow.Services.Core.Workflow
 
             var eligible = IsSystemAdmin
                 ? actions
-                : actions.Where(a => CanUserPerformAction(a, stage, userId.Value, roleIds));
+                : actions.Where(a => CanUserPerformAction(a, task, userId.Value, roleIds));
             return eligible.Select(MapStageActionOption).ToList();
         }
 
@@ -787,34 +808,62 @@ namespace AssetFlow.Services.Core.Workflow
             };
         }
 
-        private static bool CanUserPerformAction(WorkflowStageAction stageAction, WorkflowModuleStage stage, int userId, IReadOnlyList<int> roleIds)
+        /// <summary>
+        /// Action visibility/execution uses StageAction assignee only:
+        /// Role — user's roles must include StageAction.AssignmentValue.
+        /// User — current user must be the active task assignee (task AssignmentValue when task is user-assigned).
+        /// </summary>
+        private static bool CanUserPerformAction(WorkflowStageAction stageAction, WorkflowTask task, int userId, IReadOnlyList<int> roleIds)
         {
-            if (stageAction.AssigneeTypeId.HasValue && stageAction.AssignmentValue.HasValue)
-                return MatchesParty(stageAction.AssigneeTypeId.Value, stageAction.AssignmentValue.Value, userId, roleIds);
-            if (stage.AssigneeTypeId.HasValue)
+            if (!stageAction.AssigneeTypeId.HasValue)
+                return false;
+
+            if (stageAction.AssigneeTypeId == (int)WorkflowPartyType.Role)
             {
-                if (stage.AssigneeTypeId == (int)WorkflowPartyType.User)
-                    return false;
-                if (stage.AssignmentValue.HasValue)
-                    return MatchesParty(stage.AssigneeTypeId.Value, stage.AssignmentValue.Value, userId, roleIds);
+                return stageAction.AssignmentValue.HasValue
+                    && roleIds.Contains(stageAction.AssignmentValue.Value);
             }
+
+            if (stageAction.AssigneeTypeId == (int)WorkflowPartyType.User)
+            {
+                return task.AssigneeTypeId == (int)WorkflowPartyType.User
+                    && task.AssignmentValue.HasValue
+                    && task.AssignmentValue.Value == userId;
+            }
+
             return false;
         }
 
-        private static bool MatchesParty(int assigneeTypeId, int assignmentValue, int userId, IReadOnlyList<int> roleIds) =>
-            assigneeTypeId == (int)WorkflowPartyType.User
-                ? assignmentValue == userId
-                : assigneeTypeId == (int)WorkflowPartyType.Role && roleIds.Contains(assignmentValue);
-
-        private static (bool Ok, string? Error, int? AssigneeTypeId, int? AssignmentValue) ResolveStageAssignment(WorkflowModuleStage stage)
+        /// <summary>
+        /// New tasks inherit assignee from the target ModuleStage row.
+        /// User stages with no fixed AssignmentValue on the stage require runtimeUserIdFromPopup when the action popup includes SpecificPerson.
+        /// </summary>
+        private static (bool Ok, string? Error, int? AssigneeTypeId, int? AssignmentValue) ResolveStageAssignment(
+            WorkflowModuleStage stage,
+            int? runtimeUserIdFromPopup = null)
         {
             if (!stage.AssigneeTypeId.HasValue)
                 return (false, $"Stage '{stage.StageNameEn}' has no assignee configured.", null, null);
-            if (stage.AssigneeTypeId == (int)WorkflowPartyType.User)
-                return (false, $"Stage '{stage.StageNameEn}' uses runtime user assignment; configure a role or specific user for automatic task assignment.", null, null);
+
+            var assigneeTypeId = stage.AssigneeTypeId;
+            if (assigneeTypeId == (int)WorkflowPartyType.User)
+            {
+                if (stage.AssignmentValue.HasValue)
+                    return (true, null, assigneeTypeId, stage.AssignmentValue);
+
+                if (runtimeUserIdFromPopup.HasValue)
+                    return (true, null, assigneeTypeId, runtimeUserIdFromPopup);
+
+                return (false, $"Stage '{stage.StageNameEn}' requires a specific user to be selected for assignment.", null, null);
+            }
+
             if (!stage.AssignmentValue.HasValue)
                 return (false, $"Stage '{stage.StageNameEn}' requires a role assignment value.", null, null);
-            return (true, null, stage.AssigneeTypeId, stage.AssignmentValue);
+
+            if (runtimeUserIdFromPopup.HasValue)
+                return (false, "Specific person cannot be used when the next stage assignee is a role.", null, null);
+
+            return (true, null, assigneeTypeId, stage.AssignmentValue);
         }
 
         private WorkflowTask BuildTask(Guid masterId, WorkflowModuleStage stage, int? assigneeTypeId, int? assignmentValue, DateTime assignedAt, int? createdByUserId)
@@ -959,21 +1008,6 @@ namespace AssetFlow.Services.Core.Workflow
                 ReferenceItemType = master?.ReferenceItemType ?? string.Empty,
                 ModuleNameEn = master == null ? null : await _context.WorkflowModules.Where(m => m.ModuleId == master.ModuleId).Select(m => m.ModuleNameEn).FirstOrDefaultAsync()
             };
-        }
-
-        private static (bool Ok, string? Error, int? AssigneeTypeId, int? AssignmentValue) ResolveNextTaskAssignment(
-            WorkflowModuleStage nextStage,
-            bool assignUserFromPopup,
-            int? popupUserId)
-        {
-            if (assignUserFromPopup)
-            {
-                if (!popupUserId.HasValue)
-                    return (false, "Specific person is required for this action.", null, null);
-                return (true, null, (int)WorkflowPartyType.User, popupUserId);
-            }
-
-            return ResolveStageAssignment(nextStage);
         }
 
         private async Task<string?> ResolveRoleDisplayAsync(int? roleId, int? tenantId)
