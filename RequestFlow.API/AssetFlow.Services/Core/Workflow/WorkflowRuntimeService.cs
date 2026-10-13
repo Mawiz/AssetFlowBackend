@@ -143,8 +143,31 @@ namespace AssetFlow.Services.Core.Workflow
         public async Task<ResponseDto<WorkflowTaskDetailDto>> GetTaskDetailAsync(Guid workflowTaskId)
         {
             var response = new ResponseDto<WorkflowTaskDetailDto>();
+            var userId = UserHelper.GetCurrentUserId(_httpContextAccessor);
+            if (!userId.HasValue)
+            {
+                response.AddError("User context is required.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
             var task = await LoadTaskWithAccessAsync(workflowTaskId);
             if (task == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+
+            var masterEntity = await _context.WorkflowMasters.AsNoTracking()
+                .FirstOrDefaultAsync(m => m.WorkflowMasterId == task.WorkflowMasterId && !m.IsDeleted);
+            if (masterEntity == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+
+            var roleIds = UserHelper.GetCurrentRoleIds(_httpContextAccessor);
+            var canView = IsSystemAdmin
+                || await UserHasPermissionAsync(userId.Value, Permissions.WorkflowRuntimeView)
+                || await CanUserAccessIssueWorkflowAsync(masterEntity.WorkflowMasterId, masterEntity, userId.Value, roleIds);
+            if (!canView)
+            {
+                response.AddError("Access denied.");
+                response.StatusCode = HttpStatusCode.Forbidden;
+                return response;
+            }
 
             var master = await MapMasterAsync(task.WorkflowMasterId);
             var history = await GetHistoryInternalAsync(task.WorkflowMasterId);
@@ -167,7 +190,9 @@ namespace AssetFlow.Services.Core.Workflow
                 PerformedByUserId = task.PerformedByUserId,
                 PerformedByDisplayName = await ResolveUserDisplayAsync(task.PerformedByUserId),
                 PerformedByRoleId = task.PerformedByRoleId,
+                PerformedByRoleDisplayName = await ResolveRoleDisplayAsync(task.PerformedByRoleId, master?.TenantId),
                 Notes = task.Notes,
+                Solution = task.Solution,
                 DueDate = task.DueDate,
                 DueInHours = task.DueInHours,
                 ReferenceItemId = master?.ReferenceItemId ?? 0,
@@ -175,8 +200,17 @@ namespace AssetFlow.Services.Core.Workflow
                 ModuleNameEn = master?.ModuleNameEn,
                 Master = master,
                 History = history,
-                AvailableActions = available
+                AvailableActions = task.IsCompleted ? new List<WorkflowStageActionOptionDto>() : available
             };
+
+            if (master != null)
+            {
+                if (master.ReferenceItemType == WorkflowReferenceItemTypes.Issue)
+                    response.Result.Issue = await MapIssueWorkflowIssueAsync(master.ReferenceItemId);
+                else if (master.ReferenceItemType == WorkflowReferenceItemTypes.Maintenance)
+                    response.Result.Maintenance = await MapMaintenanceWorkflowItemAsync(master.ReferenceItemId);
+            }
+
             return response;
         }
 
@@ -249,16 +283,76 @@ namespace AssetFlow.Services.Core.Workflow
                     return response;
                 }
 
-                if (!CanUserPerformAction(stageAction, stage, userId.Value, roleIds))
+                if (!IsSystemAdmin && !CanUserPerformAction(stageAction, stage, userId.Value, roleIds))
                 {
                     response.AddError("You are not authorized to perform this action.");
                     response.StatusCode = HttpStatusCode.Forbidden;
                     return response;
                 }
 
-                if (stageAction.Action?.IsNotesRequired == true && string.IsNullOrWhiteSpace(dto.Notes))
+                var popupParse = WorkflowPopUpComponentHelper.ParseIds(stageAction.ActionPopUpRenderingComponents);
+                if (!popupParse.Ok)
+                {
+                    response.AddError(popupParse.Error!);
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                var popupIds = popupParse.Ids;
+                var notesTrimmed = dto.Notes?.Trim();
+                var solutionTrimmed = dto.Solution?.Trim();
+
+                if (WorkflowPopUpComponentHelper.RequiresComment(popupIds) && string.IsNullOrWhiteSpace(notesTrimmed))
+                {
+                    response.AddError("Comment is required for this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                if (WorkflowPopUpComponentHelper.RequiresSolution(popupIds) && string.IsNullOrWhiteSpace(solutionTrimmed))
+                {
+                    response.AddError("Solution is required for this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                int? specificPersonUserId = null;
+                if (WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds))
+                {
+                    if (!dto.SpecificPersonUserId.HasValue || dto.SpecificPersonUserId <= 0)
+                    {
+                        response.AddError("Specific person is required for this action.");
+                        response.StatusCode = HttpStatusCode.BadRequest;
+                        return response;
+                    }
+
+                    var personValidation = await ValidateSpecificPersonUserAsync(dto.SpecificPersonUserId.Value, master.TenantId);
+                    if (!personValidation.Ok)
+                    {
+                        response.AddError(personValidation.Error!);
+                        response.StatusCode = HttpStatusCode.BadRequest;
+                        return response;
+                    }
+
+                    specificPersonUserId = dto.SpecificPersonUserId.Value;
+                }
+                else if (dto.SpecificPersonUserId.HasValue)
+                {
+                    response.AddError("Specific person is not allowed for this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                if (popupIds.Count == 0 && stageAction.Action?.IsNotesRequired == true && string.IsNullOrWhiteSpace(notesTrimmed))
                 {
                     response.AddError("Notes are required for this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                if (popupIds.Count == 0 && !string.IsNullOrWhiteSpace(solutionTrimmed))
+                {
+                    response.AddError("Solution is not allowed for this action.");
                     response.StatusCode = HttpStatusCode.BadRequest;
                     return response;
                 }
@@ -270,9 +364,35 @@ namespace AssetFlow.Services.Core.Workflow
                 task.PerformedByRoleId = primaryRoleId > 0 ? primaryRoleId : null;
                 task.StageActionId = stageAction.StageActionId;
                 task.ActionId = stageAction.ActionId;
-                task.Notes = dto.Notes?.Trim();
+                if (!WorkflowPopUpComponentHelper.RequiresComment(popupIds) && popupIds.Count > 0 && !string.IsNullOrWhiteSpace(notesTrimmed))
+                {
+                    response.AddError("Comment is not allowed for this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                task.Notes = (WorkflowPopUpComponentHelper.RequiresComment(popupIds) || popupIds.Count == 0)
+                    ? (string.IsNullOrWhiteSpace(notesTrimmed) ? null : notesTrimmed)
+                    : null;
+
+                if (WorkflowPopUpComponentHelper.RequiresSolution(popupIds))
+                    task.Solution = solutionTrimmed;
+                else if (!string.IsNullOrWhiteSpace(solutionTrimmed))
+                {
+                    response.AddError("Solution is not allowed for this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
                 task.ModifiedOn = now;
                 task.ModifiedById = userId;
+
+                if (WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds) && !stageAction.NextSageId.HasValue)
+                {
+                    response.AddError("Specific person assignment requires a next stage on this action.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
 
                 if (!stageAction.NextSageId.HasValue)
                 {
@@ -296,7 +416,8 @@ namespace AssetFlow.Services.Core.Workflow
                         return response;
                     }
 
-                    var nextAssign = ResolveStageAssignment(nextStage);
+                    var assignFromPopup = WorkflowPopUpComponentHelper.RequiresSpecificPerson(popupIds);
+                    var nextAssign = ResolveNextTaskAssignment(nextStage, assignFromPopup, specificPersonUserId);
                     if (!nextAssign.Ok)
                     {
                         response.AddError(nextAssign.Error!);
@@ -375,7 +496,9 @@ namespace AssetFlow.Services.Core.Workflow
             }
 
             var roleIds = UserHelper.GetCurrentRoleIds(_httpContextAccessor);
-            var canView = await UserHasPermissionAsync(userId.Value, Permissions.AssetIssueView)
+            var canView = IsSystemAdmin
+                || await UserHasPermissionAsync(userId.Value, Permissions.AssetIssueView)
+                || await UserHasPermissionAsync(userId.Value, Permissions.WorkflowRuntimeView)
                 || await CanUserAccessIssueWorkflowAsync(master.WorkflowMasterId, master, userId.Value, roleIds);
             if (!canView)
             {
@@ -524,14 +647,19 @@ namespace AssetFlow.Services.Core.Workflow
             return response;
         }
 
+        private bool IsSystemAdmin => TenantScopeHelper.IsSystemAdmin(_tenantProvider);
+
         private async Task<bool> UserHasPermissionAsync(int userId, string permission)
         {
+            if (IsSystemAdmin) return true;
+
             var roleIds = await _context.ApplicationUserRoles.AsNoTracking()
                 .Where(ur => ur.UserId == userId)
                 .Select(ur => ur.RoleId)
                 .ToListAsync();
             if (roleIds.Count == 0) return false;
             return await _context.RoleResources.AsNoTracking()
+                .Include(rr => rr.Resource)
                 .AnyAsync(rr => roleIds.Contains(rr.ApplicationRoleId) && rr.Resource.ResourceName == permission);
         }
 
@@ -633,17 +761,30 @@ namespace AssetFlow.Services.Core.Workflow
                 .OrderBy(a => a.DisplayOrderNo)
                 .ToListAsync();
 
-            return actions
-                .Where(a => CanUserPerformAction(a, stage, userId.Value, roleIds))
-                .Select(a => new WorkflowStageActionOptionDto
-                {
-                    StageActionId = a.StageActionId,
-                    ActionId = a.ActionId,
-                    StageActionDisplayName = a.StageActionDisplayName,
-                    IsNotesRequired = a.Action?.IsNotesRequired ?? false,
-                    NextSageId = a.NextSageId
-                })
-                .ToList();
+            var eligible = IsSystemAdmin
+                ? actions
+                : actions.Where(a => CanUserPerformAction(a, stage, userId.Value, roleIds));
+            return eligible.Select(MapStageActionOption).ToList();
+        }
+
+        private static WorkflowStageActionOptionDto MapStageActionOption(WorkflowStageAction a)
+        {
+            var normalized = WorkflowPopUpComponentHelper.NormalizeStorage(a.ActionPopUpRenderingComponents);
+            var storage = normalized.Ok ? normalized.Normalized : a.ActionPopUpRenderingComponents;
+            var popupParse = WorkflowPopUpComponentHelper.ParseIds(storage);
+            var popupIds = popupParse.Ok
+                ? popupParse.Ids.Select(x => (int)x).ToList()
+                : new List<int>();
+            return new WorkflowStageActionOptionDto
+            {
+                StageActionId = a.StageActionId,
+                ActionId = a.ActionId,
+                StageActionDisplayName = a.StageActionDisplayName,
+                IsNotesRequired = a.Action?.IsNotesRequired ?? false,
+                NextSageId = a.NextSageId,
+                ActionPopUpRenderingComponents = storage,
+                PopupComponentIds = popupIds
+            };
         }
 
         private static bool CanUserPerformAction(WorkflowStageAction stageAction, WorkflowModuleStage stage, int userId, IReadOnlyList<int> roleIds)
@@ -771,7 +912,8 @@ namespace AssetFlow.Services.Core.Workflow
             var master = await _context.WorkflowMasters.AsNoTracking().FirstOrDefaultAsync(m => m.WorkflowMasterId == workflowMasterId);
             var tasks = await _context.WorkflowTasks.AsNoTracking()
                 .Where(t => t.WorkflowMasterId == workflowMasterId && !t.IsDeleted)
-                .OrderBy(t => t.AssignedAt)
+                .OrderBy(t => t.CompletedAt ?? t.AssignedAt)
+                .ThenBy(t => t.AssignedAt)
                 .ToListAsync();
             var list = new List<WorkflowTaskDto>();
             foreach (var t in tasks)
@@ -808,13 +950,82 @@ namespace AssetFlow.Services.Core.Workflow
                 PerformedByUserId = task.PerformedByUserId,
                 PerformedByDisplayName = await ResolveUserDisplayAsync(task.PerformedByUserId),
                 PerformedByRoleId = task.PerformedByRoleId,
+                PerformedByRoleDisplayName = await ResolveRoleDisplayAsync(task.PerformedByRoleId, master?.TenantId),
                 Notes = task.Notes,
+                Solution = task.Solution,
                 DueDate = task.DueDate,
                 DueInHours = task.DueInHours,
                 ReferenceItemId = master?.ReferenceItemId ?? 0,
                 ReferenceItemType = master?.ReferenceItemType ?? string.Empty,
                 ModuleNameEn = master == null ? null : await _context.WorkflowModules.Where(m => m.ModuleId == master.ModuleId).Select(m => m.ModuleNameEn).FirstOrDefaultAsync()
             };
+        }
+
+        private static (bool Ok, string? Error, int? AssigneeTypeId, int? AssignmentValue) ResolveNextTaskAssignment(
+            WorkflowModuleStage nextStage,
+            bool assignUserFromPopup,
+            int? popupUserId)
+        {
+            if (assignUserFromPopup)
+            {
+                if (!popupUserId.HasValue)
+                    return (false, "Specific person is required for this action.", null, null);
+                return (true, null, (int)WorkflowPartyType.User, popupUserId);
+            }
+
+            return ResolveStageAssignment(nextStage);
+        }
+
+        private async Task<string?> ResolveRoleDisplayAsync(int? roleId, int? tenantId)
+        {
+            if (!roleId.HasValue) return null;
+            return await _context.ApplicationRoles.Where(r => r.Id == roleId.Value && (!tenantId.HasValue || r.TenantId == tenantId))
+                .Select(r => r.DisplayName ?? r.Name).FirstOrDefaultAsync();
+        }
+
+        private async Task<MaintenanceWorkflowItemDto?> MapMaintenanceWorkflowItemAsync(int occurrenceId)
+        {
+            return await _context.PreventiveMaintenanceOccurrences.AsNoTracking()
+                .Include(x => x.Asset)
+                .Include(x => x.MaintenanceSchedule)
+                .Include(x => x.MaintenanceType)
+                .Where(x => x.Id == occurrenceId)
+                .Select(x => new MaintenanceWorkflowItemDto
+                {
+                    Id = x.Id,
+                    TenantId = x.TenantId,
+                    ScheduleName = x.MaintenanceSchedule.Name,
+                    AssetId = x.AssetId,
+                    AssetCode = x.Asset.AssetCode,
+                    AssetName = x.Asset.Name,
+                    LocationName = string.Empty,
+                    MaintenanceTypeName = x.MaintenanceType.Name,
+                    ScheduledDate = x.ScheduledDate,
+                    DueDate = x.DueDate,
+                    Status = x.Status,
+                    Remarks = x.Remarks ?? string.Empty
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<(bool Ok, string? Error)> ValidateSpecificPersonUserAsync(int userId, int? masterTenantId)
+        {
+            var user = await _context.ApplicationUsers.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+            if (user == null)
+                return (false, "Selected user was not found or is inactive.");
+
+            if (masterTenantId.HasValue)
+            {
+                if (user.TenantId != masterTenantId)
+                    return (false, "Selected user does not belong to this tenant.");
+            }
+            else if (user.TenantId.HasValue && !IsSystemAdmin)
+            {
+                return (false, "Selected user is not valid for this workflow.");
+            }
+
+            return (true, null);
         }
 
         private async Task<string?> ResolveUserDisplayAsync(int? userId)

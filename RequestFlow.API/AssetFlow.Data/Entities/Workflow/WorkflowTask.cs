@@ -15,6 +15,7 @@ namespace AssetFlow.Data.Entities.Workflow
         public int? PerformedByUserId { get; set; }
         public int? PerformedByRoleId { get; set; }
         public string? Notes { get; set; }
+        public string? Solution { get; set; }
         public DateTime? DueDate { get; set; }
         public int? DueInHours { get; set; }
 

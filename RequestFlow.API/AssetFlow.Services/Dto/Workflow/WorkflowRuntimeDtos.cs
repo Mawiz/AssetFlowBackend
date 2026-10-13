@@ -66,7 +66,9 @@ namespace AssetFlow.Services.Dto.Workflow
         public int? PerformedByUserId { get; set; }
         public string? PerformedByDisplayName { get; set; }
         public int? PerformedByRoleId { get; set; }
+        public string? PerformedByRoleDisplayName { get; set; }
         public string? Notes { get; set; }
+        public string? Solution { get; set; }
         public DateTime? DueDate { get; set; }
         public int? DueInHours { get; set; }
         public int ReferenceItemId { get; set; }
@@ -79,6 +81,24 @@ namespace AssetFlow.Services.Dto.Workflow
         public WorkflowMasterDto? Master { get; set; }
         public List<WorkflowStageActionOptionDto> AvailableActions { get; set; } = new();
         public List<WorkflowTaskDto> History { get; set; } = new();
+        public IssueWorkflowIssueDto? Issue { get; set; }
+        public MaintenanceWorkflowItemDto? Maintenance { get; set; }
+    }
+
+    public class MaintenanceWorkflowItemDto
+    {
+        public int Id { get; set; }
+        public int? TenantId { get; set; }
+        public string ScheduleName { get; set; } = string.Empty;
+        public int AssetId { get; set; }
+        public string AssetCode { get; set; } = string.Empty;
+        public string AssetName { get; set; } = string.Empty;
+        public string LocationName { get; set; } = string.Empty;
+        public string MaintenanceTypeName { get; set; } = string.Empty;
+        public DateTime? ScheduledDate { get; set; }
+        public DateTime DueDate { get; set; }
+        public int Status { get; set; }
+        public string Remarks { get; set; } = string.Empty;
     }
 
     public class WorkflowStageActionOptionDto
@@ -88,6 +108,8 @@ namespace AssetFlow.Services.Dto.Workflow
         public string StageActionDisplayName { get; set; } = string.Empty;
         public bool IsNotesRequired { get; set; }
         public int? NextSageId { get; set; }
+        public string? ActionPopUpRenderingComponents { get; set; }
+        public List<int> PopupComponentIds { get; set; } = new();
     }
 
     public class PerformWorkflowActionDto
@@ -95,6 +117,8 @@ namespace AssetFlow.Services.Dto.Workflow
         public Guid WorkflowTaskId { get; set; }
         public int StageActionId { get; set; }
         public string? Notes { get; set; }
+        public string? Solution { get; set; }
+        public int? SpecificPersonUserId { get; set; }
     }
 
     public class WorkflowInboxFilterDto : SearchViewDto

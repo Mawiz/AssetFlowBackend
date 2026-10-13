@@ -203,5 +203,12 @@
             View = 3,
             PerformedByMe = 4
         }
+
+        public enum ActionPopUpRenderingComponents
+        {
+            Comment = 1,
+            SolutionText = 2,
+            SpecificPerson = 3
+        }
     }
 }

@@ -52,7 +52,7 @@ namespace AssetFlow.API.Controllers
         }
 
         [HttpGet("{id}/workflow")]
-        [RequirePermission(Permissions.AssetIssueView)]
+        [RequireAnyPermission(Permissions.AssetIssueView, Permissions.WorkflowRuntimeView)]
         public async Task<IActionResult> GetWorkflowIntegration(int id, [FromQuery] Guid? workflowTaskId)
         {
             var response = await _workflowRuntime.GetIssueWorkflowIntegrationAsync(id, workflowTaskId);

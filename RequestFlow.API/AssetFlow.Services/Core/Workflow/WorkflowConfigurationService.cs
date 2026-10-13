@@ -890,8 +890,6 @@ namespace AssetFlow.Services.Core.Workflow
 
                 AcknowledgementTemplateId = dto.AcknowledgementTemplateId,
 
-                ActionPopUpRenderingComponents = dto.ActionPopUpRenderingComponents,
-
                 TemplateId = dto.TemplateId,
 
                 SMSTemplateId = dto.SMSTemplateId,
@@ -899,6 +897,10 @@ namespace AssetFlow.Services.Core.Workflow
                 IsActive = dto.IsActive
 
             };
+
+            var popupNorm = WorkflowPopUpComponentHelper.NormalizeStorage(dto.ActionPopUpRenderingComponents);
+            if (!popupNorm.Ok) { response.AddError(popupNorm.Error!); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+            entity.ActionPopUpRenderingComponents = popupNorm.Normalized;
 
             _context.WorkflowStageActions.Add(entity);
 
@@ -964,7 +966,9 @@ namespace AssetFlow.Services.Core.Workflow
 
             entity.AcknowledgementTemplateId = dto.AcknowledgementTemplateId;
 
-            entity.ActionPopUpRenderingComponents = dto.ActionPopUpRenderingComponents;
+            var popupNormUpdate = WorkflowPopUpComponentHelper.NormalizeStorage(dto.ActionPopUpRenderingComponents);
+            if (!popupNormUpdate.Ok) { response.AddError(popupNormUpdate.Error!); response.StatusCode = HttpStatusCode.BadRequest; return response; }
+            entity.ActionPopUpRenderingComponents = popupNormUpdate.Normalized;
 
             entity.TemplateId = dto.TemplateId;
 

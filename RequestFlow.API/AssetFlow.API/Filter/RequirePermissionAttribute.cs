@@ -37,7 +37,7 @@ namespace AssetFlow.API.Filter
             var userIdValue = context.HttpContext.User.FindFirst("userId")?.Value;
             if (!int.TryParse(userIdValue, out var userId))
             {
-                Forbid(context);
+                PermissionAuthorization.Forbid(context);
                 return;
             }
 
@@ -51,22 +51,11 @@ namespace AssetFlow.API.Filter
 
             var hasPermission = roleIds.Count > 0 && db.RoleResources
                 .IgnoreQueryFilters()
+                .Include(rr => rr.Resource)
                 .Any(rr => roleIds.Contains(rr.ApplicationRoleId) && rr.Resource.ResourceName == Permission);
 
             if (!hasPermission)
-                Forbid(context);
-        }
-
-        private static void Forbid(AuthorizationFilterContext context)
-        {
-            context.Result = new ObjectResult(new ResponseDto<string>
-            {
-                StatusCode = HttpStatusCode.Forbidden,
-                Message = "Forbidden"
-            })
-            {
-                StatusCode = (int)HttpStatusCode.Forbidden
-            };
+                PermissionAuthorization.Forbid(context);
         }
 
         private static bool SkipAuthorization(AuthorizationFilterContext context)
