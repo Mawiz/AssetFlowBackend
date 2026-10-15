@@ -210,5 +210,14 @@
             SolutionText = 2,
             SpecificPerson = 3
         }
+
+        public enum SelectionTypeId
+        {
+            NoAssignee = 1,
+            LastRequestSubmitter = 2,
+            RequestAssignTo = 3,
+            CurrentRequester = 4,
+            ExternalAssignmentInStage = 5
+        }
     }
 }

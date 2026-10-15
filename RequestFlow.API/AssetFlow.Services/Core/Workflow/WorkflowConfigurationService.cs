@@ -854,7 +854,7 @@ namespace AssetFlow.Services.Core.Workflow
 
             var validation = await ValidateStageActionReferencesAsync(dto.ActionId, dto.NextSageId, stageCtx.ModuleId, stageCtx.TenantId, dto.StageId,
 
-                dto.AssigneeTypeId, dto.AssignmentValue);
+                dto.AssigneeTypeId, dto.AssignmentValue, dto.SelectionTypeId);
 
             if (!validation.Ok) { response.AddError(validation.Error!); response.StatusCode = validation.StatusCode; return response; }
 
@@ -887,6 +887,8 @@ namespace AssetFlow.Services.Core.Workflow
                 AssigneeTypeId = dto.AssigneeTypeId,
 
                 AssignmentValue = dto.AssignmentValue,
+
+                SelectionTypeId = dto.SelectionTypeId ?? (int)Enums.SelectionTypeId.NoAssignee,
 
                 AcknowledgementTemplateId = dto.AcknowledgementTemplateId,
 
@@ -936,7 +938,7 @@ namespace AssetFlow.Services.Core.Workflow
 
             var validation = await ValidateStageActionReferencesAsync(dto.ActionId, dto.NextSageId, stageCtx.ModuleId, stageCtx.TenantId, stageId,
 
-                dto.AssigneeTypeId, dto.AssignmentValue);
+                dto.AssigneeTypeId, dto.AssignmentValue, dto.SelectionTypeId);
 
             if (!validation.Ok) { response.AddError(validation.Error!); response.StatusCode = validation.StatusCode; return response; }
 
@@ -963,6 +965,8 @@ namespace AssetFlow.Services.Core.Workflow
             entity.AssigneeTypeId = dto.AssigneeTypeId;
 
             entity.AssignmentValue = dto.AssignmentValue;
+
+            entity.SelectionTypeId = dto.SelectionTypeId ?? (int)Enums.SelectionTypeId.NoAssignee;
 
             entity.AcknowledgementTemplateId = dto.AcknowledgementTemplateId;
 
@@ -1356,7 +1360,7 @@ namespace AssetFlow.Services.Core.Workflow
 
         private async Task<(bool Ok, string? Error, HttpStatusCode StatusCode)> ValidateStageActionReferencesAsync(
 
-            int actionId, int? nextStageId, int moduleId, int? tenantId, int stageId, int? assigneeTypeId, int? assignmentValue)
+            int actionId, int? nextStageId, int moduleId, int? tenantId, int stageId, int? assigneeTypeId, int? assignmentValue, int? selectionTypeId)
 
         {
 
@@ -1380,8 +1384,38 @@ namespace AssetFlow.Services.Core.Workflow
 
             }
 
-            return await ValidateAssigneeAsync(tenantId, assigneeTypeId, assignmentValue);
+            var selectionCheck = ValidateStageActionSelectionType(selectionTypeId);
+            if (!selectionCheck.Ok) return (false, selectionCheck.Error!, selectionCheck.StatusCode);
 
+            return await ValidateStageActionAssigneeAsync(tenantId, assigneeTypeId, assignmentValue);
+
+        }
+
+        private static (bool Ok, string? Error, HttpStatusCode StatusCode) ValidateStageActionSelectionType(int? selectionTypeId)
+        {
+            if (!selectionTypeId.HasValue)
+                return (true, null, HttpStatusCode.OK);
+            if (!Enum.IsDefined(typeof(Enums.SelectionTypeId), selectionTypeId.Value))
+                return (false, "Invalid selection type.", HttpStatusCode.BadRequest);
+            return (true, null, HttpStatusCode.OK);
+        }
+
+
+
+        private async Task<(bool Ok, string? Error, HttpStatusCode StatusCode)> ValidateStageActionAssigneeAsync(int? tenantId, int? assigneeTypeId, int? assignmentValue)
+        {
+            if (!assigneeTypeId.HasValue && !assignmentValue.HasValue) return (true, null, HttpStatusCode.OK);
+            if (!assigneeTypeId.HasValue)
+                return (false, "Assignee type is required when assignment value is provided.", HttpStatusCode.BadRequest);
+            if (assigneeTypeId == (int)Enums.WorkflowPartyType.User)
+            {
+                if (!assignmentValue.HasValue)
+                    return (true, null, HttpStatusCode.OK);
+                return await ValidatePartyAsync(tenantId, assigneeTypeId.Value, assignmentValue.Value, "Action assignee");
+            }
+            if (!assignmentValue.HasValue)
+                return (false, "Role is required for role-based action assignment.", HttpStatusCode.BadRequest);
+            return await ValidatePartyAsync(tenantId, assigneeTypeId.Value, assignmentValue.Value, "Action assignee");
         }
 
 
@@ -1716,13 +1750,14 @@ namespace AssetFlow.Services.Core.Workflow
 
             string? assigneeDisplay = null;
 
-            if (entity.AssigneeTypeId.HasValue && entity.AssignmentValue.HasValue)
-
+            if (entity.AssigneeTypeId == (int)Enums.WorkflowPartyType.User)
             {
-
-                assigneeDisplay = await ResolvePartyDisplayNameAsync(tenantId, entity.AssigneeTypeId.Value, entity.AssignmentValue.Value);
-
+                assigneeDisplay = entity.AssignmentValue.HasValue
+                    ? await ResolvePartyDisplayNameAsync(tenantId, entity.AssigneeTypeId.Value, entity.AssignmentValue.Value)
+                    : "Current task assignee";
             }
+            else if (entity.AssigneeTypeId.HasValue && entity.AssignmentValue.HasValue)
+                assigneeDisplay = await ResolvePartyDisplayNameAsync(tenantId, entity.AssigneeTypeId.Value, entity.AssignmentValue.Value);
 
 
 
@@ -1765,6 +1800,8 @@ namespace AssetFlow.Services.Core.Workflow
                 AssignmentValue = entity.AssignmentValue,
 
                 AssigneeDisplayName = assigneeDisplay,
+
+                SelectionTypeId = entity.SelectionTypeId,
 
                 AcknowledgementTemplateId = entity.AcknowledgementTemplateId,
 

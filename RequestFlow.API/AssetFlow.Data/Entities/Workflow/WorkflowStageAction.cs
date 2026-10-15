@@ -32,6 +32,7 @@ namespace AssetFlow.Data.Entities.Workflow
 
         public int? AssigneeTypeId { get; set; }
         public int? AssignmentValue { get; set; }
+        public int? SelectionTypeId { get; set; }
         public int? AcknowledgementTemplateId { get; set; }
 
         [StringLength(2000)]

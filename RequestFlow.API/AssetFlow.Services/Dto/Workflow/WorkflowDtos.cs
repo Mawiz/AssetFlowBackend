@@ -122,6 +122,7 @@ namespace AssetFlow.Services.Dto.Workflow
         public int? AssigneeTypeId { get; set; }
         public int? AssignmentValue { get; set; }
         public string? AssigneeDisplayName { get; set; }
+        public int? SelectionTypeId { get; set; }
         public int? AcknowledgementTemplateId { get; set; }
         public string? ActionPopUpRenderingComponents { get; set; }
         public Guid? TemplateId { get; set; }
@@ -141,6 +142,7 @@ namespace AssetFlow.Services.Dto.Workflow
         public int? NextSageId { get; set; }
         public int? AssigneeTypeId { get; set; }
         public int? AssignmentValue { get; set; }
+        public int? SelectionTypeId { get; set; }
         public int? AcknowledgementTemplateId { get; set; }
         public string? ActionPopUpRenderingComponents { get; set; }
         public Guid? TemplateId { get; set; }

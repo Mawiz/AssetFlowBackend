@@ -4478,6 +4478,9 @@ namespace AssetFlow.Data.Migrations
                     b.Property<Guid?>("SMSTemplateId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("SelectionTypeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("StageActionDisplayName")
                         .IsRequired()
                         .HasMaxLength(200)
