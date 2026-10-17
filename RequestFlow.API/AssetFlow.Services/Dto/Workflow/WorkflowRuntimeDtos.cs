@@ -60,6 +60,8 @@ namespace AssetFlow.Services.Dto.Workflow
         public int? AssigneeTypeId { get; set; }
         public int? AssignmentValue { get; set; }
         public string? AssigneeDisplayName { get; set; }
+        public int? AssignedByUserId { get; set; }
+        public string? AssignedByDisplayName { get; set; }
         public bool IsCompleted { get; set; }
         public DateTime AssignedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
