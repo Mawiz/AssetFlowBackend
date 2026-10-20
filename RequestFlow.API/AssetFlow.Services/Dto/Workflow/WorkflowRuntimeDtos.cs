@@ -126,6 +126,8 @@ namespace AssetFlow.Services.Dto.Workflow
     public class WorkflowInboxFilterDto : SearchViewDto
     {
         public int Category { get; set; }
+        public string? ReferenceItemType { get; set; }
+        public int? ReferenceItemId { get; set; }
     }
 
     public class GetWorkflowByReferenceQuery

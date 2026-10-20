@@ -2,6 +2,7 @@ using AssetFlow.Common.Enum;
 using AssetFlow.Common.Helper;
 using AssetFlow.Data.Data;
 using AssetFlow.Data.Entities.Maintenance;
+using AssetFlow.Data.Entities.Workflow;
 using AssetFlow.Data.Provider;
 using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Dto;
@@ -20,17 +21,20 @@ namespace AssetFlow.Services.Core.Maintenance
         private readonly ITenantProvider _tenantProvider;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPreventiveMaintenanceGenerationService _generationService;
+        private readonly IWorkflowRuntimeService _workflowRuntimeService;
 
         public PreventiveMaintenanceService(
             ApplicationDbContext context,
             ITenantProvider tenantProvider,
             IHttpContextAccessor httpContextAccessor,
-            IPreventiveMaintenanceGenerationService generationService)
+            IPreventiveMaintenanceGenerationService generationService,
+            IWorkflowRuntimeService workflowRuntimeService)
         {
             _context = context;
             _tenantProvider = tenantProvider;
             _httpContextAccessor = httpContextAccessor;
             _generationService = generationService;
+            _workflowRuntimeService = workflowRuntimeService;
         }
 
         public async Task<ResponseDto<object>> FilterAsync(PreventiveMaintenanceOccurrenceFilterDto model)
@@ -41,6 +45,7 @@ namespace AssetFlow.Services.Core.Maintenance
             var order = string.IsNullOrWhiteSpace(model.OrderByProp) ? "DueDate" : model.OrderByProp;
             if (model.SortDirection == (int)Enums.OrderBy.Descending) order += " descending";
             var page = await query.OrderBy(order).Select(ProjectList()).ToPagedListAsync(model.PageNumber, model.PageSize);
+            await EnrichWorkflowAsync(page.ToList());
             response.Result = page;
             return response;
         }
@@ -53,7 +58,123 @@ namespace AssetFlow.Services.Core.Maintenance
             if (dto == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
             var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, dto.TenantId);
             if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
+            await EnrichWorkflowAsync(new List<PreventiveMaintenanceOccurrenceDto> { dto });
             response.Result = dto;
+            return response;
+        }
+
+        public async Task<ResponseDto<StartPreventiveMaintenanceWorkflowResultDto>> StartWorkflowAsync(int id)
+        {
+            var response = new ResponseDto<StartPreventiveMaintenanceWorkflowResultDto>();
+            var userId = UserHelper.GetCurrentUserId(_httpContextAccessor);
+            if (!userId.HasValue)
+            {
+                response.AddError("User context is required.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            var occurrence = await _context.PreventiveMaintenanceOccurrences.FindAsync(id);
+            if (occurrence == null) { response.AddError("Not found."); response.StatusCode = HttpStatusCode.NotFound; return response; }
+            var access = TenantScopeHelper.EnsureEntityTenantAccess(_tenantProvider, occurrence.TenantId);
+            if (!access.Ok) { response.AddError(access.Error); response.StatusCode = HttpStatusCode.Forbidden; return response; }
+            if (occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Completed
+                || occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Cancelled)
+            {
+                response.AddError("Occurrence cannot start workflow.");
+                response.StatusCode = HttpStatusCode.BadRequest;
+                return response;
+            }
+
+            var existingMaster = await _context.WorkflowMasters.AsNoTracking()
+                .FirstOrDefaultAsync(m =>
+                    m.ReferenceItemType == WorkflowReferenceItemTypes.Maintenance &&
+                    m.ReferenceItemId == id &&
+                    !m.IsDeleted);
+            if (existingMaster != null)
+            {
+                var existingTask = await _context.WorkflowTasks.AsNoTracking()
+                    .Where(t => t.WorkflowMasterId == existingMaster.WorkflowMasterId && !t.IsDeleted && !t.IsCompleted)
+                    .OrderBy(t => t.AssignedAt)
+                    .Select(t => t.WorkflowTaskId)
+                    .FirstOrDefaultAsync();
+                if (existingTask == Guid.Empty)
+                {
+                    response.AddError("Workflow already exists but no active task was found.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+                response.Result = new StartPreventiveMaintenanceWorkflowResultDto
+                {
+                    OccurrenceId = id,
+                    WorkflowMasterId = existingMaster.WorkflowMasterId,
+                    ActiveWorkflowTaskId = existingTask
+                };
+                return response;
+            }
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var (wfOk, wfError) = await _workflowRuntimeService.InitiateIfMappedAsync(
+                    occurrence.TenantId,
+                    WorkflowReferenceItemTypes.Maintenance,
+                    occurrence.Id,
+                    userId.Value);
+                if (!wfOk)
+                {
+                    await tx.RollbackAsync();
+                    response.AddError(wfError ?? "Workflow could not be started. Check Maintenance module mapping and initial stage configuration.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                var created = await _context.WorkflowMasters.AsNoTracking()
+                    .AnyAsync(m =>
+                        m.ReferenceItemType == WorkflowReferenceItemTypes.Maintenance &&
+                        m.ReferenceItemId == id &&
+                        !m.IsDeleted);
+                if (!created)
+                {
+                    await tx.RollbackAsync();
+                    response.AddError("No active workflow mapping for Maintenance. Configure module item mapping first.");
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    return response;
+                }
+
+                if (occurrence.Status != (int)Enums.PreventiveMaintenanceOccurrenceStatus.InProgress)
+                {
+                    occurrence.Status = (int)Enums.PreventiveMaintenanceOccurrenceStatus.InProgress;
+                    occurrence.StartedAt ??= DateTime.UtcNow;
+                    occurrence.StartedByUserId ??= userId;
+                    await _context.SaveChangesAsync();
+                }
+
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+
+            var master = await _context.WorkflowMasters.AsNoTracking()
+                .FirstAsync(m =>
+                    m.ReferenceItemType == WorkflowReferenceItemTypes.Maintenance &&
+                    m.ReferenceItemId == id &&
+                    !m.IsDeleted);
+            var activeTaskId = await _context.WorkflowTasks.AsNoTracking()
+                .Where(t => t.WorkflowMasterId == master.WorkflowMasterId && !t.IsDeleted && !t.IsCompleted)
+                .OrderBy(t => t.AssignedAt)
+                .Select(t => t.WorkflowTaskId)
+                .FirstAsync();
+
+            response.Result = new StartPreventiveMaintenanceWorkflowResultDto
+            {
+                OccurrenceId = id,
+                WorkflowMasterId = master.WorkflowMasterId,
+                ActiveWorkflowTaskId = activeTaskId
+            };
             return response;
         }
 
@@ -307,7 +428,6 @@ namespace AssetFlow.Services.Core.Maintenance
                 DueOperatingHours = x.DueOperatingHours,
                 DueCycles = x.DueCycles,
                 Status = x.Status,
-                WorkOrderId = x.WorkOrderId,
                 StartedAt = x.StartedAt,
                 CompletedAt = x.CompletedAt,
                 CompletedByUserId = x.CompletedByUserId,
@@ -355,7 +475,37 @@ namespace AssetFlow.Services.Core.Maintenance
                 var user = await _context.ApplicationUsers.FindAsync(baseDto.CompletedByUserId.Value);
                 baseDto.CompletedByUserName = user?.FullName ?? user?.UserName;
             }
+            await EnrichWorkflowAsync(new List<PreventiveMaintenanceOccurrenceDto> { baseDto });
             return baseDto;
+        }
+
+        private async Task EnrichWorkflowAsync(IList<PreventiveMaintenanceOccurrenceDto> items)
+        {
+            if (items.Count == 0) return;
+            var ids = items.Select(i => i.Id).ToList();
+            var masters = await _context.WorkflowMasters.AsNoTracking()
+                .Where(m => m.ReferenceItemType == WorkflowReferenceItemTypes.Maintenance && ids.Contains(m.ReferenceItemId) && !m.IsDeleted)
+                .Select(m => new { m.ReferenceItemId, m.WorkflowMasterId, m.IsCompleted })
+                .ToListAsync();
+            var masterIds = masters.Select(m => m.WorkflowMasterId).ToList();
+            var activeTasks = await _context.WorkflowTasks.AsNoTracking()
+                .Where(t => masterIds.Contains(t.WorkflowMasterId) && !t.IsDeleted && !t.IsCompleted)
+                .GroupBy(t => t.WorkflowMasterId)
+                .Select(g => new { WorkflowMasterId = g.Key, TaskId = g.OrderBy(t => t.AssignedAt).Select(t => t.WorkflowTaskId).FirstOrDefault() })
+                .ToListAsync();
+            var masterByOcc = masters.ToDictionary(m => m.ReferenceItemId);
+            var taskByMaster = activeTasks.ToDictionary(x => x.WorkflowMasterId, x => x.TaskId);
+
+            foreach (var item in items)
+            {
+                if (!masterByOcc.TryGetValue(item.Id, out var m)) continue;
+                item.WorkflowMasterId = m.WorkflowMasterId;
+                if (taskByMaster.TryGetValue(m.WorkflowMasterId, out var taskId) && taskId != Guid.Empty)
+                {
+                    item.ActiveWorkflowTaskId = taskId;
+                    item.HasActiveWorkflow = !m.IsCompleted;
+                }
+            }
         }
     }
 }

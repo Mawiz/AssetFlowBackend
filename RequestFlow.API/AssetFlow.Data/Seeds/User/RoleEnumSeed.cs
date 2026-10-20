@@ -300,6 +300,7 @@ namespace AssetFlow.Data.Seeds.User
                     new Resource { Id = 117, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceUpdate },
                     new Resource { Id = 118, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceComplete },
                     new Resource { Id = 119, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceGenerate },
+                    new Resource { Id = 175, FeatureId = preventiveMaintenanceFeatureId, ResourceName = Permissions.PreventiveMaintenanceStart },
 
                     new Resource { Id = 128, FeatureId = issueCategoryFeatureId, ResourceName = Permissions.IssueCategoryView },
                     new Resource { Id = 129, FeatureId = issueCategoryFeatureId, ResourceName = Permissions.IssueCategoryCreate },

@@ -369,10 +369,10 @@ namespace AssetFlow.Services.Core.Reporting
                 .CountAsync(i => !i.IsDeleted && assetIds.Contains(i.AssetId)
                     && i.Status != (int)Enums.IssueStatus.Resolved && i.Status != (int)Enums.IssueStatus.Cancelled);
 
-            var woQ = TenantScopeHelper.ApplyTenantScope(_context.WorkOrders.AsQueryable(), _tenantProvider, filter.TenantId)
-                .Where(w => !w.IsDeleted && assetIds.Contains(w.AssetId));
-            var openWo = await woQ.CountAsync(w => OpenWorkOrderStatuses.Contains(w.Status));
-            var waitingParts = await woQ.CountAsync(w => w.Status == (int)Enums.WorkOrderStatus.WaitingForParts);
+            var taskQ = _context.WorkflowTasks.AsQueryable().Where(t => !t.IsDeleted && !t.IsCompleted);
+            var masterQ = TenantScopeHelper.ApplyTenantScope(_context.WorkflowMasters.AsQueryable(), _tenantProvider, filter.TenantId)
+                .Where(m => !m.IsDeleted && !m.IsCompleted);
+            var openWorkflowTasks = await (from t in taskQ join m in masterQ on t.WorkflowMasterId equals m.WorkflowMasterId select t).CountAsync();
 
             var pmQ = TenantScopeHelper.ApplyTenantScope(_context.PreventiveMaintenanceOccurrences.AsQueryable(), _tenantProvider, filter.TenantId)
                 .Where(p => !p.IsDeleted && assetIds.Contains(p.AssetId));
@@ -394,13 +394,7 @@ namespace AssetFlow.Services.Core.Reporting
 
             var pmCompliance = await ComputePmComplianceAsync(filter);
 
-            var woStatusDist = (await woQ.GroupBy(w => w.Status)
-                .Select(g => new { Status = g.Key, Count = g.Count() }).ToListAsync())
-                .Select(g => new ChartPointDto
-                {
-                    Label = Enum.GetName(typeof(Enums.WorkOrderStatus), g.Status) ?? g.Status.ToString(),
-                    Value = g.Count
-                }).ToList();
+            var stageDist = await BuildOpenWorkflowStageDistributionAsync(filter);
 
             var pmStatusDist = (await pmQ.GroupBy(p => p.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() }).ToListAsync())
@@ -422,13 +416,12 @@ namespace AssetFlow.Services.Core.Reporting
             return new MaintenanceSummaryDto
             {
                 OpenIssues = openIssues,
-                OpenWorkOrders = openWo,
+                OpenWorkflowTasks = openWorkflowTasks,
                 TodaysMaintenance = todaysPm,
                 OverdueMaintenance = overduePm,
                 CompletedToday = completedToday,
-                WaitingForParts = waitingParts,
                 PmCompliancePercent = pmCompliance,
-                WorkOrderStatusDistribution = woStatusDist,
+                WorkflowStageDistribution = stageDist,
                 PmStatusDistribution = pmStatusDist,
                 MaintenanceCostTrend = costTrend
             };
@@ -1042,6 +1035,40 @@ namespace AssetFlow.Services.Core.Reporting
                 .Where(m => m >= 0).ToList();
             if (minutes.Count == 0) return null;
             return Math.Round((decimal)minutes.Average(), 1);
+        }
+
+        internal async Task<List<ChartPointDto>> BuildOpenWorkflowStageDistributionAsync(ReportingFilterDto filter)
+        {
+            var masters = await TenantScopeHelper.ApplyTenantScope(_context.WorkflowMasters.AsQueryable(), _tenantProvider, filter.TenantId)
+                .Where(m => !m.IsDeleted && !m.IsCompleted)
+                .Select(m => new { m.WorkflowMasterId, m.CurrentStageId })
+                .ToListAsync();
+            if (masters.Count == 0) return new List<ChartPointDto>();
+
+            var masterIds = masters.Select(m => m.WorkflowMasterId).ToList();
+            var openTasks = await _context.WorkflowTasks.AsNoTracking()
+                .Where(t => masterIds.Contains(t.WorkflowMasterId) && !t.IsDeleted && !t.IsCompleted)
+                .Select(t => new { t.WorkflowMasterId, t.WorkflowTaskId, t.AssignedAt })
+                .ToListAsync();
+            var activeMasterIds = openTasks
+                .GroupBy(t => t.WorkflowMasterId)
+                .Select(g => g.OrderBy(t => t.AssignedAt).First().WorkflowMasterId)
+                .ToHashSet();
+
+            var stageIds = masters.Where(m => activeMasterIds.Contains(m.WorkflowMasterId) && m.CurrentStageId.HasValue)
+                .Select(m => m.CurrentStageId!.Value).Distinct().ToList();
+            var stageNames = await _context.WorkflowModuleStages.AsNoTracking()
+                .Where(s => stageIds.Contains(s.StageId))
+                .ToDictionaryAsync(s => s.StageId, s => s.StageNameEn ?? "Stage");
+
+            var labels = masters
+                .Where(m => activeMasterIds.Contains(m.WorkflowMasterId))
+                .Select(m => m.CurrentStageId.HasValue && stageNames.TryGetValue(m.CurrentStageId.Value, out var n) ? n : "Unknown")
+                .GroupBy(x => x)
+                .Select(g => new ChartPointDto { Label = g.Key, Value = g.Count() })
+                .OrderByDescending(x => x.Value)
+                .ToList();
+            return labels;
         }
     }
 }

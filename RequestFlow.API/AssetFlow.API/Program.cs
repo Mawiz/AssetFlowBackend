@@ -17,7 +17,6 @@ using AssetFlow.Services.Contracts;
 using AssetFlow.Services.Core;
 using AssetFlow.Services.Core.Maintenance;
 using AssetFlow.Services.Core.Issue;
-using AssetFlow.Services.Core.WorkOrder;
 using AssetFlow.Services.Core.Workflow;
 using AssetFlow.Services.Core.SparePart;
 using AssetFlow.Services.Dto.User;
@@ -146,7 +145,6 @@ builder.Services.AddTransient<IPreventiveMaintenanceGenerationService, Preventiv
 builder.Services.AddTransient<IPreventiveMaintenanceService, PreventiveMaintenanceService>();
 builder.Services.AddTransient<IIssueCategoryService, IssueCategoryService>();
 builder.Services.AddTransient<IAssetIssueService, AssetIssueService>();
-builder.Services.AddTransient<IWorkOrderService, WorkOrderService>();
 builder.Services.AddTransient<IPartReplacementService, PartReplacementService>();
 builder.Services.AddTransient<IAssetHistoryService, AssetFlow.Services.Core.History.AssetHistoryService>();
 builder.Services.AddTransient<IMaintenanceCostService, AssetFlow.Services.Core.History.MaintenanceCostService>();

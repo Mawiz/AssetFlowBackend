@@ -2,6 +2,7 @@ using AssetFlow.Common.Enum;
 using AssetFlow.Common.Helper;
 using AssetFlow.Data.Data;
 using AssetFlow.Data.Entities.Issue;
+using AssetFlow.Data.Entities.Maintenance;
 using AssetFlow.Data.Entities.Workflow;
 using AssetFlow.Data.Identity;
 using AssetFlow.Data.Provider;
@@ -459,6 +460,8 @@ namespace AssetFlow.Services.Core.Workflow
 
                 master.ModifiedOn = now;
                 master.ModifiedById = userId;
+                if (master.IsCompleted)
+                    await SyncMaintenanceOccurrenceOnWorkflowCompleteAsync(master);
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
@@ -470,6 +473,16 @@ namespace AssetFlow.Services.Core.Workflow
                 await tx.RollbackAsync();
                 throw;
             }
+        }
+
+        private async Task SyncMaintenanceOccurrenceOnWorkflowCompleteAsync(WorkflowMaster master)
+        {
+            if (master.ReferenceItemType != WorkflowReferenceItemTypes.Maintenance) return;
+            var occurrence = await _context.PreventiveMaintenanceOccurrences
+                .FirstOrDefaultAsync(o => o.Id == master.ReferenceItemId);
+            if (occurrence == null) return;
+            if (occurrence.Status == (int)Enums.PreventiveMaintenanceOccurrenceStatus.Cancelled) return;
+            occurrence.Status = (int)Enums.PreventiveMaintenanceOccurrenceStatus.Completed;
         }
 
         public async Task<ResponseDto<List<WorkflowTaskDto>>> GetHistoryAsync(Guid workflowMasterId)
@@ -583,6 +596,14 @@ namespace AssetFlow.Services.Core.Workflow
 
             if (tenantId.HasValue)
                 query = query.Where(x => x.Master.TenantId == tenantId);
+
+            if (!string.IsNullOrWhiteSpace(model.ReferenceItemType))
+            {
+                var refType = model.ReferenceItemType.Trim();
+                query = query.Where(x => x.Master.ReferenceItemType == refType);
+            }
+            if (model.ReferenceItemId.HasValue)
+                query = query.Where(x => x.Master.ReferenceItemId == model.ReferenceItemId.Value);
 
             query = category switch
             {

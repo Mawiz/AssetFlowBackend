@@ -2,9 +2,7 @@ using AssetFlow.Common.Enum;
 using AssetFlow.Data.Data;
 using AssetFlow.Data.Entities.Maintenance;
 using AssetFlow.Data.Provider;
-using AssetFlow.Common.Helper;
 using AssetFlow.Services.Contracts;
-using Microsoft.AspNetCore.Http;
 using AssetFlow.Services.Dto;
 using AssetFlow.Services.Dto.Maintenance;
 using Microsoft.EntityFrameworkCore;
@@ -17,20 +15,14 @@ namespace AssetFlow.Services.Core.Maintenance
     {
         private readonly ApplicationDbContext _context;
         private readonly ITenantProvider _tenantProvider;
-        private readonly IWorkflowRuntimeService _workflowRuntimeService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly List<PreventiveMaintenanceOccurrence> _occurrencesCreatedThisRun = new();
 
         public PreventiveMaintenanceGenerationService(
             ApplicationDbContext context,
-            ITenantProvider tenantProvider,
-            IWorkflowRuntimeService workflowRuntimeService,
-            IHttpContextAccessor httpContextAccessor)
+            ITenantProvider tenantProvider)
         {
             _context = context;
             _tenantProvider = tenantProvider;
-            _workflowRuntimeService = workflowRuntimeService;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ResponseDto<GeneratePreventiveMaintenanceResultDto>> GenerateAsync(GeneratePreventiveMaintenanceDto dto)
@@ -58,31 +50,6 @@ namespace AssetFlow.Services.Core.Maintenance
                         response.Result.CreatedCount += await GenerateDateOccurrencesAsync(schedule, dto.HorizonDays);
                 }
                 await _context.SaveChangesAsync();
-
-                var submitBy = UserHelper.GetCurrentUserId(_httpContextAccessor);
-                foreach (var occurrence in _occurrencesCreatedThisRun)
-                {
-                    var initiator = submitBy ?? occurrence.CreatedById;
-                    if (!initiator.HasValue || initiator.Value <= 0)
-                    {
-                        await tx.RollbackAsync();
-                        response.AddError("User context is required to start workflow for generated maintenance items.");
-                        response.StatusCode = HttpStatusCode.BadRequest;
-                        return response;
-                    }
-                    var (wfOk, wfError) = await _workflowRuntimeService.InitiateIfMappedAsync(
-                        occurrence.TenantId,
-                        WorkflowReferenceItemTypes.Maintenance,
-                        occurrence.Id,
-                        initiator.Value);
-                    if (!wfOk)
-                    {
-                        await tx.RollbackAsync();
-                        response.AddError(wfError ?? "Workflow initiation failed for a maintenance occurrence.");
-                        response.StatusCode = HttpStatusCode.BadRequest;
-                        return response;
-                    }
-                }
                 await tx.CommitAsync();
             }
             catch

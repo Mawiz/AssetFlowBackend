@@ -8,6 +8,7 @@ namespace AssetFlow.Services.Contracts
         Task<ResponseDto<object>> FilterAsync(PreventiveMaintenanceOccurrenceFilterDto model);
         Task<ResponseDto<PreventiveMaintenanceOccurrenceDto>> GetByIdAsync(int id);
         Task<ResponseDto<PreventiveMaintenanceOccurrenceDto>> StartAsync(int id);
+        Task<ResponseDto<StartPreventiveMaintenanceWorkflowResultDto>> StartWorkflowAsync(int id);
         Task<ResponseDto<PreventiveMaintenanceOccurrenceDto>> CompleteAsync(CompletePreventiveMaintenanceDto dto);
         Task<ResponseDto<PreventiveMaintenanceOccurrenceDto>> CancelAsync(int id);
         Task<ResponseDto<List<CalendarOccurrenceDto>>> GetCalendarAsync(PreventiveMaintenanceOccurrenceFilterDto model);

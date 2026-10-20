@@ -52,13 +52,12 @@ namespace AssetFlow.Services.Dto.Reporting
     public class MaintenanceSummaryDto
     {
         public int OpenIssues { get; set; }
-        public int OpenWorkOrders { get; set; }
+        public int OpenWorkflowTasks { get; set; }
         public int TodaysMaintenance { get; set; }
         public int OverdueMaintenance { get; set; }
         public int CompletedToday { get; set; }
-        public int WaitingForParts { get; set; }
         public decimal? PmCompliancePercent { get; set; }
-        public List<ChartPointDto> WorkOrderStatusDistribution { get; set; } = new();
+        public List<ChartPointDto> WorkflowStageDistribution { get; set; } = new();
         public List<ChartPointDto> PmStatusDistribution { get; set; } = new();
         public List<ChartPointDto> MaintenanceCostTrend { get; set; } = new();
     }

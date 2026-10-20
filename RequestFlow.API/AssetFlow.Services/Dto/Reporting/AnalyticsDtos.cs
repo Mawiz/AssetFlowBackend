@@ -105,7 +105,7 @@ namespace AssetFlow.Services.Dto.Reporting
         public List<AnalyticsInsightDto> Insights { get; set; } = new();
         public List<AssetAttentionDto> AttentionAssets { get; set; } = new();
         public TimeSeriesMultiDto MaintenanceActivity { get; set; } = new();
-        public List<ChartPointDto> WorkOrderPipeline { get; set; } = new();
+        public List<ChartPointDto> WorkflowStagePipeline { get; set; } = new();
         public List<StackedCostMonthDto> CostTrendStacked { get; set; } = new();
         public List<ChartPointDto> DowntimeTrend { get; set; } = new();
         public List<TopFailingAssetDto> TopDowntimeAssets { get; set; } = new();
@@ -133,7 +133,7 @@ namespace AssetFlow.Services.Dto.Reporting
         public List<PmOverdueRowDto> OverduePm { get; set; } = new();
         public List<ChartPointDto> PmComplianceBreakdown { get; set; } = new();
         public TimeSeriesMultiDto PmTrend { get; set; } = new();
-        public List<ChartPointDto> WorkOrdersByPriority { get; set; } = new();
+        public List<ChartPointDto> WorkflowTasksByStage { get; set; } = new();
         public List<ChartPointDto> PmByCategory { get; set; } = new();
     }
 
@@ -146,11 +146,11 @@ namespace AssetFlow.Services.Dto.Reporting
         public List<TopFailingAssetDto> RepeatedFailures { get; set; } = new();
     }
 
-    public class WorkOrderAnalyticsDashboardDto
+    public class WorkflowOperationsAnalyticsDashboardDto
     {
-        public List<ChartPointDto> StatusPipeline { get; set; } = new();
+        public List<ChartPointDto> StagePipeline { get; set; } = new();
         public List<WorkOrderAgingBucketDto> Aging { get; set; } = new();
-        public List<ChartPointDto> ByPriority { get; set; } = new();
+        public List<ChartPointDto> ByReferenceType { get; set; } = new();
         public TimeSeriesMultiDto CompletionTrend { get; set; } = new();
         public List<KpiMetricDto> Kpis { get; set; } = new();
     }

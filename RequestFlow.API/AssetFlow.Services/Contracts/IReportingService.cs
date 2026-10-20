@@ -16,7 +16,7 @@ namespace AssetFlow.Services.Contracts
         Task<ResponseDto<AssetAnalyticsDashboardDto>> GetAssetAnalyticsDashboardAsync(ReportingFilterDto filter);
         Task<ResponseDto<MaintenanceAnalyticsDashboardDto>> GetMaintenanceAnalyticsDashboardAsync(ReportingFilterDto filter);
         Task<ResponseDto<ReliabilityAnalyticsDashboardDto>> GetReliabilityAnalyticsDashboardAsync(ReportingFilterDto filter);
-        Task<ResponseDto<WorkOrderAnalyticsDashboardDto>> GetWorkOrderAnalyticsDashboardAsync(ReportingFilterDto filter);
+        Task<ResponseDto<WorkflowOperationsAnalyticsDashboardDto>> GetWorkflowOperationsAnalyticsDashboardAsync(ReportingFilterDto filter);
         Task<ResponseDto<SparePartsAnalyticsDashboardDto>> GetSparePartsAnalyticsDashboardAsync(ReportingFilterDto filter);
         Task<ResponseDto<CostAnalyticsDashboardDto>> GetCostAnalyticsDashboardAsync(ReportingFilterDto filter);
         Task<ResponseDto<AssetDetailAnalyticsDto>> GetAssetDetailAnalyticsAsync(int assetId, ReportingFilterDto filter);

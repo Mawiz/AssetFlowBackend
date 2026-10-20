@@ -113,6 +113,7 @@ namespace AssetFlow.Common.Helper
         public const string PreventiveMaintenanceUpdate = "PreventiveMaintenance.Update";
         public const string PreventiveMaintenanceComplete = "PreventiveMaintenance.Complete";
         public const string PreventiveMaintenanceGenerate = "PreventiveMaintenance.Generate";
+        public const string PreventiveMaintenanceStart = "PreventiveMaintenance.Start";
 
         public const string IssueCategoryCreate = "IssueCategory.Create";
         public const string IssueCategoryUpdate = "IssueCategory.Update";

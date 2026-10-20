@@ -34,10 +34,16 @@ namespace AssetFlow.API.Controllers
         public async Task<IActionResult> Reliability([FromBody] ReportingFilterDto filter) =>
             Ok(await _reportingService.GetReliabilityAnalyticsDashboardAsync(filter ?? new ReportingFilterDto()));
 
+        [HttpPost("workflow-operations")]
+        [RequirePermission(Permissions.DashboardView)]
+        public async Task<IActionResult> WorkflowOperations([FromBody] ReportingFilterDto filter) =>
+            Ok(await _reportingService.GetWorkflowOperationsAnalyticsDashboardAsync(filter ?? new ReportingFilterDto()));
+
         [HttpPost("work-orders")]
         [RequirePermission(Permissions.DashboardView)]
+        [Obsolete("Use workflow-operations")]
         public async Task<IActionResult> WorkOrders([FromBody] ReportingFilterDto filter) =>
-            Ok(await _reportingService.GetWorkOrderAnalyticsDashboardAsync(filter ?? new ReportingFilterDto()));
+            Ok(await _reportingService.GetWorkflowOperationsAnalyticsDashboardAsync(filter ?? new ReportingFilterDto()));
 
         [HttpPost("spare-parts")]
         [RequirePermission(Permissions.DashboardView)]

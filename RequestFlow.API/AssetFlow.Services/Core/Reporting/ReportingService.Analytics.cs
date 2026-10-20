@@ -34,7 +34,7 @@ namespace AssetFlow.Services.Core.Reporting
             var hero = BuildManagementHeroKpis(summaryResp.Result!, currentBreakdowns, prevBreakdowns, currentCost, prevCost);
             var attention = await BuildAttentionAssetsAsync(filter);
             var activity = await BuildMaintenanceActivitySeriesAsync(filter);
-            var pipeline = await BuildWorkOrderPipelineAsync(filter);
+            var pipeline = await BuildOpenWorkflowStageDistributionAsync(filter);
             var costStack = await BuildStackedCostTrendAsync(filter);
             var downtimeTrend = await BuildDowntimeTrendAsync(filter);
             var topDowntime = (await BuildTopFailingAssetsAsync(filter, 8)).OrderByDescending(x => x.TotalDowntimeMinutes).ToList();
@@ -57,7 +57,7 @@ namespace AssetFlow.Services.Core.Reporting
                 Insights = insights,
                 AttentionAssets = attention,
                 MaintenanceActivity = activity,
-                WorkOrderPipeline = pipeline,
+                WorkflowStagePipeline = pipeline,
                 CostTrendStacked = costStack,
                 DowntimeTrend = downtimeTrend,
                 TopDowntimeAssets = topDowntime,
@@ -145,7 +145,7 @@ namespace AssetFlow.Services.Core.Reporting
             };
 
             var overdueRows = await BuildPmOverdueTableAsync(filter);
-            var woPriority = await BuildWorkOrderPriorityDistAsync(filter);
+            var woPriority = await BuildOpenWorkflowStageDistributionAsync(filter);
             var pmByCat = await BuildPmComplianceByCategoryAsync(filter);
 
             response.Result = new MaintenanceAnalyticsDashboardDto
@@ -155,7 +155,7 @@ namespace AssetFlow.Services.Core.Reporting
                 OverduePm = overdueRows,
                 PmComplianceBreakdown = complianceBreakdown,
                 PmTrend = pmTrend,
-                WorkOrdersByPriority = woPriority,
+                WorkflowTasksByStage = woPriority,
                 PmByCategory = pmByCat
             };
             return response;
@@ -198,28 +198,23 @@ namespace AssetFlow.Services.Core.Reporting
             return response;
         }
 
-        public async Task<ResponseDto<WorkOrderAnalyticsDashboardDto>> GetWorkOrderAnalyticsDashboardAsync(ReportingFilterDto filter)
+        public async Task<ResponseDto<WorkflowOperationsAnalyticsDashboardDto>> GetWorkflowOperationsAnalyticsDashboardAsync(ReportingFilterDto filter)
         {
-            var response = new ResponseDto<WorkOrderAnalyticsDashboardDto>();
+            var response = new ResponseDto<WorkflowOperationsAnalyticsDashboardDto>();
             if (!await ValidateFilterAsync(filter, response)) return response;
             ResolvePeriod(filter);
 
-            var assetIds = ScopedAssets(filter).Select(a => a.Id);
-            var woQ = TenantScopeHelper.ApplyTenantScope(_context.WorkOrders.AsQueryable(), _tenantProvider, filter.TenantId)
-                .Where(w => !w.IsDeleted && assetIds.Contains(w.AssetId));
+            var masterQ = TenantScopeHelper.ApplyTenantScope(_context.WorkflowMasters.AsQueryable(), _tenantProvider, filter.TenantId)
+                .Where(m => !m.IsDeleted);
+            var taskQ = _context.WorkflowTasks.AsQueryable().Where(t => !t.IsDeleted);
 
-            var pipeline = await woQ.GroupBy(w => w.Status)
-                .Select(g => new { Status = g.Key, Count = g.Count() }).ToListAsync();
-            var pipelineChart = pipeline.Select(g => new ChartPointDto
-            {
-                Label = Enum.GetName(typeof(Enums.WorkOrderStatus), g.Status) ?? g.Status.ToString(),
-                Value = g.Count
-            }).OrderByDescending(x => x.Value).ToList();
+            var pipelineChart = await BuildOpenWorkflowStageDistributionAsync(filter);
 
-            var openCreated = await woQ.Where(w => OpenWorkOrderStatuses.Contains(w.Status))
-                .Select(w => w.CreatedOn).ToListAsync();
+            var scopedTaskQ = from t in taskQ join m in masterQ on t.WorkflowMasterId equals m.WorkflowMasterId select t;
+            var openAssigned = await scopedTaskQ.Where(t => !t.IsCompleted)
+                .Select(t => t.AssignedAt).ToListAsync();
             var now = DateTime.UtcNow;
-            int AgeCount(Func<double, bool> pred) => openCreated.Count(d => pred((now - d).TotalDays));
+            int AgeCount(Func<double, bool> pred) => openAssigned.Count(d => pred((now - d).TotalDays));
             var aging = new List<WorkOrderAgingBucketDto>
             {
                 Bucket("0–1 day", AgeCount(days => days <= 1)),
@@ -229,32 +224,28 @@ namespace AssetFlow.Services.Core.Reporting
                 Bucket("15+ days", AgeCount(days => days > 14))
             };
 
-            var byPriority = await woQ.GroupBy(w => w.Priority)
-                .Select(g => new { Priority = g.Key, Count = g.Count() }).ToListAsync();
-            var priorityChart = byPriority.Select(g => new ChartPointDto
-            {
-                Label = Enum.GetName(typeof(Enums.IssuePriority), g.Priority) ?? g.Priority.ToString(),
-                Value = g.Count
-            }).ToList();
+            var byRefType = await masterQ.Where(m => !m.IsCompleted)
+                .GroupBy(m => m.ReferenceItemType)
+                .Select(g => new ChartPointDto { Label = g.Key, Value = g.Count() })
+                .ToListAsync();
 
-            var createdTrend = await BuildWoCreatedSeriesAsync(woQ, filter);
-            var completedTrend = await BuildWoCompletedSeriesAsync(woQ, filter);
+            var createdTrend = await BuildWorkflowTaskCreatedSeriesAsync(scopedTaskQ, filter);
+            var completedTrend = await BuildWorkflowTaskCompletedSeriesAsync(scopedTaskQ, filter);
             var trendLabels = createdTrend.Labels.Count >= completedTrend.Labels.Count ? createdTrend.Labels : completedTrend.Labels;
 
+            var openCount = await scopedTaskQ.CountAsync(t => !t.IsCompleted);
             var kpis = new List<KpiMetricDto>
             {
-                Kpi("total", "Total Work Orders", await woQ.CountAsync(), null, "number", "/modules/work-orders"),
-                Kpi("open", "Open", await woQ.CountAsync(w => OpenWorkOrderStatuses.Contains(w.Status)), null, "number", "/modules/work-orders"),
-                Kpi("inProgress", "In Progress", await woQ.CountAsync(w => w.Status == (int)Enums.WorkOrderStatus.InProgress), null, "number", "/modules/work-orders", false, "status=6"),
-                Kpi("waitingParts", "Waiting for Parts", await woQ.CountAsync(w => w.Status == (int)Enums.WorkOrderStatus.WaitingForParts), null, "number", "/modules/work-orders", false, "status=7"),
-                Kpi("reopened", "Reopened", await woQ.CountAsync(w => w.Status == (int)Enums.WorkOrderStatus.Reopened), null, "number", "/modules/work-orders", false, "status=11")
+                Kpi("open", "Open tasks", openCount, null, "number", "/modules/workflow-inbox"),
+                Kpi("masters", "Active workflows", await masterQ.CountAsync(m => !m.IsCompleted), null, "number", "/modules/workflow-inbox"),
+                Kpi("completedPeriod", "Completed (period)", await scopedTaskQ.CountAsync(t => t.IsCompleted && t.CompletedAt >= filter.StartDate && t.CompletedAt <= filter.EndDate), null, "number", "/modules/workflow-inbox")
             };
 
-            response.Result = new WorkOrderAnalyticsDashboardDto
+            response.Result = new WorkflowOperationsAnalyticsDashboardDto
             {
-                StatusPipeline = pipelineChart,
+                StagePipeline = pipelineChart,
                 Aging = aging,
-                ByPriority = priorityChart,
+                ByReferenceType = byRefType,
                 CompletionTrend = new TimeSeriesMultiDto
                 {
                     Labels = trendLabels,
@@ -461,7 +452,7 @@ namespace AssetFlow.Services.Core.Reporting
                 Kpi("underMaint", "Under Maintenance", s.Asset.UnderMaintenance, null, "number", "/modules/assets", false, "status=2"),
                 Kpi("breakdown", "Breakdown", s.Asset.Breakdown, null, "number", "/modules/assets", false, "status=3"),
                 Kpi("critical", "Critical Assets", s.Asset.Critical, null, "number", "/modules/assets", false, "criticality=1"),
-                Kpi("openWo", "Open Work Orders", s.Maintenance.OpenWorkOrders, null, "number", "/modules/work-orders"),
+                Kpi("openWf", "Open workflow tasks", s.Maintenance.OpenWorkflowTasks, null, "number", "/modules/workflow-inbox"),
                 Kpi("overduePm", "Overdue PM", s.Maintenance.OverdueMaintenance, null, "number", "/modules/analytics/maintenance"),
                 Kpi("maintCost", "Maintenance Cost", cost, prevCost, "currency", "/modules/analytics/cost", false),
                 Kpi("periodBreakdowns", "Breakdowns (period)", breakdowns, prevBreakdowns, "number", "/modules/analytics/reliability", false)
@@ -705,30 +696,30 @@ namespace AssetFlow.Services.Core.Reporting
             }).OrderByDescending(x => x.Value).Take(12).ToList();
         }
 
-        private async Task<(string Name, List<string> Labels, List<decimal> Values)> BuildWoCreatedSeriesAsync(
-            IQueryable<Data.Entities.WorkOrder.WorkOrder> woQ, ReportingFilterDto filter)
+        private async Task<(string Name, List<string> Labels, List<decimal> Values)> BuildWorkflowTaskCreatedSeriesAsync(
+            IQueryable<Data.Entities.Workflow.WorkflowTask> taskQ, ReportingFilterDto filter)
         {
-            var q = woQ;
-            if (filter.StartDate.HasValue) q = q.Where(w => w.CreatedOn >= filter.StartDate);
-            if (filter.EndDate.HasValue) q = q.Where(w => w.CreatedOn <= filter.EndDate);
-            var rows = await q.GroupBy(w => new { w.CreatedOn.Year, w.CreatedOn.Month })
+            var q = taskQ;
+            if (filter.StartDate.HasValue) q = q.Where(t => t.AssignedAt >= filter.StartDate);
+            if (filter.EndDate.HasValue) q = q.Where(t => t.AssignedAt <= filter.EndDate);
+            var rows = await q.GroupBy(t => new { t.AssignedAt.Year, t.AssignedAt.Month })
                 .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
                 .OrderBy(x => x.Year).ThenBy(x => x.Month).ToListAsync();
-            return ("Created", rows.Select(r => YearMonthLabel(r.Year, r.Month)).ToList(), rows.Select(r => (decimal)r.Count).ToList());
+            return ("Tasks created", rows.Select(r => YearMonthLabel(r.Year, r.Month)).ToList(), rows.Select(r => (decimal)r.Count).ToList());
         }
 
-        private async Task<(string Name, List<string> Labels, List<decimal> Values)> BuildWoCompletedSeriesAsync(
-            IQueryable<Data.Entities.WorkOrder.WorkOrder> woQ, ReportingFilterDto filter)
+        private async Task<(string Name, List<string> Labels, List<decimal> Values)> BuildWorkflowTaskCompletedSeriesAsync(
+            IQueryable<Data.Entities.Workflow.WorkflowTask> taskQ, ReportingFilterDto filter)
         {
-            var list = await woQ.Where(w => w.CompletedAt.HasValue || w.ClosedAt.HasValue)
-                .Select(w => new { Done = w.CompletedAt ?? w.ClosedAt }).ToListAsync();
-            var filtered = list.Where(w =>
-                (!filter.StartDate.HasValue || w.Done >= filter.StartDate) &&
-                (!filter.EndDate.HasValue || w.Done <= filter.EndDate)).ToList();
-            var rows = filtered.GroupBy(w => new { w.Done!.Value.Year, w.Done.Value.Month })
+            var list = await taskQ.Where(t => t.IsCompleted && t.CompletedAt.HasValue)
+                .Select(t => t.CompletedAt!.Value).ToListAsync();
+            var filtered = list.Where(d =>
+                (!filter.StartDate.HasValue || d >= filter.StartDate) &&
+                (!filter.EndDate.HasValue || d <= filter.EndDate)).ToList();
+            var rows = filtered.GroupBy(d => new { d.Year, d.Month })
                 .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
                 .OrderBy(x => x.Year).ThenBy(x => x.Month).ToList();
-            return ("Completed", rows.Select(r => YearMonthLabel(r.Year, r.Month)).ToList(), rows.Select(r => (decimal)r.Count).ToList());
+            return ("Tasks completed", rows.Select(r => YearMonthLabel(r.Year, r.Month)).ToList(), rows.Select(r => (decimal)r.Count).ToList());
         }
 
         private static List<decimal> AlignSeries(List<string> masterLabels, List<string> seriesLabels, List<decimal> values)

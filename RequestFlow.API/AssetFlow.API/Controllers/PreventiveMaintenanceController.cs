@@ -42,6 +42,14 @@ namespace AssetFlow.API.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+        [HttpPost("{id}/StartWorkflow")]
+        [RequirePermission(Permissions.PreventiveMaintenanceStart)]
+        public async Task<IActionResult> StartWorkflow(int id)
+        {
+            var response = await _pmService.StartWorkflowAsync(id);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
         [HttpPost("Complete")]
         [RequirePermission(Permissions.PreventiveMaintenanceComplete)]
         public async Task<IActionResult> Complete([FromBody] CompletePreventiveMaintenanceDto dto)

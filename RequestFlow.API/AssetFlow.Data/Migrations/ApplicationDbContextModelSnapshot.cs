@@ -747,6 +747,12 @@ namespace AssetFlow.Data.Migrations
                         },
                         new
                         {
+                            Id = 175,
+                            FeatureId = 103,
+                            ResourceName = "PreventiveMaintenance.Start"
+                        },
+                        new
+                        {
                             Id = 128,
                             FeatureId = 120,
                             ResourceName = "IssueCategory.View"
