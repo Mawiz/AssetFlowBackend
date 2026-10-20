@@ -144,6 +144,14 @@ namespace AssetFlow.Services.Core
             var category = await _context.PartCategories.FindAsync(dto.PartCategoryId);
             if (category == null || !category.IsActive) return "Part category not found or inactive.";
             if (category.TenantId != tenantId) return "Part category must belong to the same tenant.";
+
+            if (dto.AssetId.HasValue)
+            {
+                var asset = await _context.Assets.FindAsync(dto.AssetId.Value);
+                if (asset == null || asset.IsDeleted || !asset.IsActive) return "Asset not found or inactive.";
+                if (asset.TenantId != tenantId) return "Asset must belong to the same tenant.";
+            }
+
             return null;
         }
 
@@ -153,6 +161,7 @@ namespace AssetFlow.Services.Core
             entity.PartNumber = dto.PartNumber.Trim();
             entity.PartName = dto.PartName.Trim();
             entity.PartCategoryId = dto.PartCategoryId;
+            entity.AssetId = dto.AssetId;
             entity.Description = dto.Description;
             entity.Manufacturer = dto.Manufacturer?.Trim();
             entity.SupplierName = dto.SupplierName?.Trim();
@@ -167,7 +176,7 @@ namespace AssetFlow.Services.Core
         }
 
         private IQueryable<Part> BuildQuery() =>
-            _context.Parts.Include(x => x.PartCategory).Include(x => x.Tenant);
+            _context.Parts.Include(x => x.PartCategory).Include(x => x.Tenant).Include(x => x.Asset);
 
         private static System.Linq.Expressions.Expression<Func<Part, PartDto>> ProjectToDto() =>
             x => new PartDto
@@ -179,6 +188,9 @@ namespace AssetFlow.Services.Core
                 PartName = x.PartName,
                 PartCategoryId = x.PartCategoryId,
                 PartCategoryName = x.PartCategory.Name,
+                AssetId = x.AssetId,
+                AssetCode = x.Asset != null ? x.Asset.AssetCode : null,
+                AssetName = x.Asset != null ? x.Asset.Name : null,
                 Description = x.Description,
                 Manufacturer = x.Manufacturer,
                 SupplierName = x.SupplierName,

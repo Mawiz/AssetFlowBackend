@@ -2724,6 +2724,9 @@ namespace AssetFlow.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AssetId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
@@ -2794,6 +2797,8 @@ namespace AssetFlow.Data.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
 
                     b.HasIndex("CreatedById");
 
@@ -5699,6 +5704,11 @@ namespace AssetFlow.Data.Migrations
 
             modelBuilder.Entity("AssetFlow.Data.Entities.SparePart.Part", b =>
                 {
+                    b.HasOne("AssetFlow.Data.Entities.Asset.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AssetFlow.Data.Identity.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById");
@@ -5716,6 +5726,8 @@ namespace AssetFlow.Data.Migrations
                     b.HasOne("AssetFlow.Data.Entities.Tenant.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId");
+
+                    b.Navigation("Asset");
 
                     b.Navigation("CreatedBy");
 

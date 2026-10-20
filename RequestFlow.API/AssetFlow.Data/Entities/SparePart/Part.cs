@@ -1,4 +1,5 @@
 using AssetFlow.Data.Entities.Tenant;
+using AssetEntity = AssetFlow.Data.Entities.Asset.Asset;
 using System.ComponentModel.DataAnnotations;
 
 namespace AssetFlow.Data.Entities.SparePart
@@ -16,6 +17,9 @@ namespace AssetFlow.Data.Entities.SparePart
 
         public int PartCategoryId { get; set; }
         public virtual PartCategory PartCategory { get; set; }
+
+        public int? AssetId { get; set; }
+        public virtual AssetEntity Asset { get; set; }
 
         [StringLength(500)]
         public string Description { get; set; }

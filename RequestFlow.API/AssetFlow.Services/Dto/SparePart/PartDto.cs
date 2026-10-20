@@ -6,6 +6,8 @@ namespace AssetFlow.Services.Dto.SparePart
     {
         public int Id { get; set; }
         public string PartCategoryName { get; set; }
+        public string AssetCode { get; set; }
+        public string AssetName { get; set; }
         public string TenantName { get; set; }
         public decimal CurrentStock { get; set; }
         public bool IsLowStock { get; set; }
@@ -17,6 +19,7 @@ namespace AssetFlow.Services.Dto.SparePart
         public string PartNumber { get; set; }
         public string PartName { get; set; }
         public int PartCategoryId { get; set; }
+        public int? AssetId { get; set; }
         public string Description { get; set; }
         public string Manufacturer { get; set; }
         public string SupplierName { get; set; }

@@ -264,7 +264,9 @@ namespace AssetFlow.Data.Data
             modelBuilder.Entity<Part>(p =>
             {
                 p.HasIndex(x => new { x.TenantId, x.PartNumber }).IsUnique();
+                p.HasIndex(x => x.AssetId);
                 p.HasOne(x => x.PartCategory).WithMany(x => x.Parts).HasForeignKey(x => x.PartCategoryId).OnDelete(DeleteBehavior.Restrict);
+                p.HasOne(x => x.Asset).WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Supplier>(s =>
